@@ -244,15 +244,62 @@ body{
       <p>Here you can upload worksheets, add quizzes, view submissions, manage announcements.</p>
     </div>
 
-    <!-- AI CHAT -->
-<div id="aiChatPage" class="page">
-  <h1>AI Chat Assistant</h1>
-  <div class="output-box" id="chatOutput" style="height:400px; overflow-y:auto;"></div>
-  <div style="margin-top:15px; display:flex; gap:10px;">
-    <input type="text" id="chatInput" placeholder="Ask me anything..." style="flex:1; padding:12px; border-radius:10px; border:1px solid #9bb2ff;">
-   <aiChatPage= https://app.schoolai.com/embed/space/clnaw1t7u000ayvpt3po1373j> 
-    <button id="sendBtn" style="padding:12px 20px; border:none; background:#2b4b9b; color:white; border-radius:10px; cursor:pointer;">Send</button>
-  </div>
+
+/* ===================== LOCAL AI CHAT WITH PREDEFINED Q&A ===================== */
+const chatBox = document.getElementById("chatBox");
+const chatInput = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
+
+sendBtn.onclick = sendMessage;
+chatInput.addEventListener("keypress", e => { if(e.key==='Enter') sendMessage(); });
+
+// Combine all answers into a simple Q&A dictionary
+const aiQA = {};
+
+// Populate from Mindmaps
+for(const topic in mmBank){
+  aiQA[`what is ${topic.toLowerCase()}`] = mmBank[topic].join(" "); // Concatenate all points
+}
+
+// Populate from Quiz Bank (simplified placeholder answers)
+for(const topic in quizBank){
+  quizBank[topic].forEach((q, i) => {
+    aiQA[q.toLowerCase()] = `Answer placeholder for: "${q}"`; // You can later add real answers
+  });
+}
+
+// Populate from Worksheet Bank (simplified placeholder answers)
+for(const topic in wsBank){
+  wsBank[topic].forEach((w, i) => {
+    aiQA[`how to ${w.toLowerCase()}`] = `Solution placeholder: ${w}`; // Later replace with real solutions
+  });
+}
+
+function sendMessage(){
+  const msg = chatInput.value.trim();
+  if(!msg) return;
+  appendMessage("You", msg);
+  chatInput.value="";
+
+  setTimeout(()=>{
+    const key = msg.toLowerCase();
+    let response = "Sorry, I don't know the answer to that. Try asking about a topic!";
+    
+    // Simple matching: check if key includes a known question
+    for(const q in aiQA){
+      if(key.includes(q)) { response = aiQA[q]; break; }
+    }
+    appendMessage("STERLA AI", response);
+  }, 400);
+}
+
+function appendMessage(sender, msg){
+  const div = document.createElement("div");
+  div.innerHTML = `<strong>${sender}:</strong> ${msg}`;
+  div.style.margin="5px 0";
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
   </div>
 </div>
