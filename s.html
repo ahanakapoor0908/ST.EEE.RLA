@@ -1,143 +1,67 @@
 <!DOCTYPE html>
+
+DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STERLA Dashboard</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-  body, html { margin:0; padding:0; font-family: 'Poppins', sans-serif; height:100%; }
-
-  /* ===== LOGIN PAGE ===== */
-  #loginPage {
-    display: flex; justify-content: center; align-items: center;
-    height: 100vh;
-    background: linear-gradient(135deg, #f8f4ec, #8cc0ff);
-  }
-  #loginBox {
-    background: rgba(255,255,255,0.4);
-    backdrop-filter: blur(10px);
-    padding: 40px;
-    border-radius: 15px;
-    text-align: center;
-    width: 300px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-  }
-  #loginBox input {
-    width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc;
-  }
-  #loginBox button {
-    padding: 10px 20px; border:none; border-radius: 5px;
-    background: #007bff; color:white; cursor:pointer; font-weight:600;
-  }
-
-  /* ===== DASHBOARD ===== */
-  #dashboard { display:none; height:100vh; background: #f5f7fb; }
-  #container { display:flex; height:100%; }
-  #topics { width:220px; background:#f0f4ff; padding:15px; overflow-y:auto; }
-  #topics h3 { margin-bottom:10px; }
-  #topics button {
-    display:block; width:100%; padding:10px; margin-bottom:8px; border:none; border-radius:8px;
-    background:#e0e7ff; cursor:pointer; text-align:left;
-  }
-  #topics button:hover { background:#c0d4ff; }
-  
-  #main { flex:1; padding:20px; overflow-y:auto; }
-  .tabs { display:flex; border-bottom:2px solid #ddd; margin-bottom:15px; }
-  .tab { padding:10px 20px; cursor:pointer; border-radius:8px 8px 0 0; margin-right:5px; background:#e0e7ff; }
-  .tab.active { background:#007bff; color:white; }
-  .tab-content { display:none; }
-  .tab-content.active { display:block; }
-
-  /* Mindmap bubbles */
-  .bubble {
-    position:absolute; padding:10px 15px; border-radius:50px;
-    background:#007bff; color:white; cursor:pointer;
-    transition: transform 0.2s, background 0.2s;
-  }
-  .bubble:hover { transform: scale(1.1); }
-
+  body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; display: flex; }
+  #sidebar { width: 220px; background: #007bff; color: white; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+  #sidebar h2 { text-align: center; margin-bottom: 20px; }
+  #sidebar button { display: block; width: 100%; margin: 10px 0; padding: 10px; background: white; color: #007bff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+  #sidebar button:hover { background: #e0e0e0; }
+  #main { flex: 1; padding: 20px; box-sizing: border-box; }
+  h1 { color: #007bff; }
+  select, textarea, input { width: 100%; padding: 8px; margin: 10px 0; box-sizing: border-box; }
+  #output { margin-top: 20px; white-space: pre-wrap; background: #fff; padding: 15px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+  iframe { width: 100%; height: 500px; border: none; border-radius: 5px; }
 </style>
 </head>
 <body>
 
-<!-- ===== LOGIN PAGE ===== -->
-<div id="loginPage">
-  <div id="loginBox">
-    <h2>Welcome to STERLA</h2>
-    <input type="text" id="username" placeholder="Username"><br>
-    <input type="password" id="password" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
-  </div>
+<div id="sidebar">
+  <h2>STERLA</h2>
+  <button onclick="showHome()">Home</button>
+  <button onclick="showMindmap()">Mindmaps</button>
+  <button onclick="showWorksheet()">Worksheets</button>
+  <button onclick="showQuiz()">Quizzes</button>
+  <button onclick="showChatbot()">Chatbot</button>
 </div>
 
-<!-- ===== DASHBOARD ===== -->
-<div id="dashboard">
-  <div id="container">
-    <!-- Left panel: topics -->
-    <div id="topics">
-      <h3>Subjects & Topics</h3>
-    </div>
+<div id="main">
+  <div id="home">
+    <h1>Welcome to STERLA</h1>
+    <p>Your AI-powered student-teacher platform. Explore mindmaps, worksheets, quizzes, and interact with the chatbot.</p>
+  </div>
 
-    <!-- Right panel: tabs -->
-    <div id="main">
-      <div class="tabs">
-        <div class="tab active" data-tab="mindmap">Mindmap</div>
-        <div class="tab" data-tab="quiz">Quiz</div>
-        <div class="tab" data-tab="worksheet">Worksheet</div>
-        <div class="tab" data-tab="ai">AI</div>
-      </div>
+  <div id="mindmap" style="display:none;">
+    <h1>Mindmaps</h1>
+    <select id="subjectMM"></select>
+    <button onclick="generateMindmap()">Show Mindmap</button>
+    <div id="outputMM"></div>
+  </div>
 
-      <div id="mindmap" class="tab-content active">
-        <h2>Mindmap</h2>
-        <div id="mindmapContainer" style="position: relative; min-height: 300px;"></div>
-      </div>
+  <div id="worksheet" style="display:none;">
+    <h1>Worksheets</h1>
+    <select id="subjectWS"></select>
+    <button onclick="generateWorksheet()">Generate Worksheet</button>
+    <div id="outputWS"></div>
+  </div>
 
-      <div id="quiz" class="tab-content">
-        <h2>Quiz</h2>
-        <div id="quizContainer"></div>
-      </div>
+  <div id="quiz" style="display:none;">
+    <h1>Quizzes</h1>
+    <select id="subjectQuiz"></select>
+    <button onclick="generateQuiz()">Generate Quiz</button>
+    <div id="outputQuiz"></div>
+  </div>
 
-      <div id="worksheet" class="tab-content">
-        <h2>Worksheet</h2>
-        <div id="wsContainer"></div>
-      </div>
-
-      <div id="ai" class="tab-content">
-        <h2>AI Chatbot</h2>
-        <textarea placeholder="Type your question..." style="width:100%; height:100px;"></textarea>
-        <button style="margin-top:10px;">Ask</button>
-        <div id="aiResponse" style="margin-top:20px;"></div>
-      </div>
-
-    </div>
+  <div id="chatbot" style="display:none;">
+    <h1>SchoolAI Chatbot</h1>
+    <iframe src="https://student.schoolai.com/dot/spaces/join?code=AWSM-78K8"></iframe>
   </div>
 </div>
-
-<script>
-/* ===== LOGIN FUNCTION ===== */
-function login() {
-  // Simple login simulation
-  const user = document.getElementById('username').value;
-  const pass = document.getElementById('password').value;
-  if(user && pass) {
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    initDashboard();
-  } else {
-    alert('Enter username & password');
-  }
-}
-
-/* ===== TABS FUNCTION ===== */
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', function() {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    this.classList.add('active');
-    document.getElementById(this.dataset.tab).classList.add('active');
-  });
-});
 
 /* ===== TOPICS & DATA ===== */
 
