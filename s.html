@@ -143,7 +143,43 @@ body{
   border-radius:12px; margin:10px 0;
 }
 
-/* New styles for Quiz */
+/* --- New styles for Mind Map Bubbles --- */
+.mm-bubble-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.mm-bubble {
+  background: #2b4b9b;
+  color: white;
+  padding: 15px 25px;
+  border-radius: 50px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: 500;
+  transition: transform 0.2s, background 0.3s;
+  max-width: 250px;
+}
+.mm-bubble:nth-child(even) {
+  background: #5370c9;
+}
+.mm-bubble:nth-child(3n) {
+  background: #1d3270;
+}
+.mm-bubble:hover {
+  transform: translateY(-5px);
+}
+#mmOutput h3 {
+  text-align: center;
+  color: #2b4b9b;
+  margin-bottom: 20px;
+}
+
+
+/* --- New styles for Quiz --- */
 .quiz-question {
   margin-bottom: 20px;
   border-bottom: 1px solid #eee;
@@ -161,8 +197,17 @@ body{
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
+  border: 1px solid transparent;
 }
-.quiz-question label:hover {
+.quiz-question label.correct {
+  background-color: #e6ffe6;
+  border-color: #4CAF50;
+}
+.quiz-question label.incorrect {
+  background-color: #ffe6e6;
+  border-color: #F44336;
+}
+.quiz-question label:not(.correct):not(.incorrect):hover {
   background-color: #f0f8ff;
 }
 input[type="radio"] {
@@ -184,7 +229,7 @@ input[type="radio"] {
   color: #1d3270;
 }
 
-/* New styles for AI Chat */
+/* --- New styles for AI Chat --- */
 .ai-message {
   padding: 10px;
   margin-bottom: 10px;
@@ -194,6 +239,11 @@ input[type="radio"] {
 .user-message {
   background-color: #ffe8e8;
   text-align: right;
+  margin-left: 20%;
+}
+.ai-message ul {
+  padding-left: 20px;
+  margin-top: 10px;
 }
 
 /* Hidden for teacher-only features: base hidden then shown via JS */
@@ -214,10 +264,12 @@ input[type="radio"] {
 
     <div class="login-right">
       <h2>Login</h2>
-      <div class="inputBox"><input type="text" id="username" placeholder="Enter your name" /></div>
       <div class="inputBox">
-        <button id="studentLogin">Login as Student</button>
-        <button id="teacherLogin">Login as Teacher</button>
+        <input type="text" id="username" placeholder="Enter your name" />
+      </div>
+      <div class="inputBox">
+        <button id="studentLogin" style="padding: 10px; width: 48%; margin-right: 2%;">Login as Student</button>
+        <button id="teacherLogin" style="padding: 10px; width: 48%;">Login as Teacher</button>
       </div>
     </div>
   </div>
@@ -289,12 +341,11 @@ input[type="radio"] {
     </div>
 
     <div id="aiChatPage" class="page">
-      <h1>AI Chat Assistant</h1>
+      <h1>🤖 AI Chat Assistant</h1>
       <p>Ask a question about the selected topic: <span id="chatTopicDisplay" style="font-weight:bold; color:#1346b5;">(No Topic Selected)</span></p>
 
       <div class="output-box" id="aiChatOutput" style="height:450px; overflow-y:auto; padding: 15px;">
         <div class="ai-message">Hi there! Select a topic in the **Subjects** tab to start learning.</div>
-        <div id="defaultAiResponse"></div>
       </div>
 
       <div style="display:flex; margin-top:15px;">
@@ -315,7 +366,7 @@ studentLoginBtn.onclick = () => doLogin("student");
 teacherLoginBtn.onclick = () => doLogin("teacher");
 
 function doLogin(role){
-  const name = prompt("Enter your name:");
+  const name = document.getElementById("username").value.trim();
   if(!name){ alert("Name is required"); return; }
   localStorage.setItem("sterlaUser", name);
   localStorage.setItem("sterlaRole", role);
@@ -349,7 +400,7 @@ function showPage(p){
   if(p === "mmPage") loadMindmap();
   if(p === "quizPage") loadQuiz();
   if(p === "wsPage") loadWorksheet();
-  if(p === "aiChatPage") setupAIChat(); // New function call
+  if(p === "aiChatPage") setupAIChat();
 }
 
 /* ===================== LOAD SUBJECTS ===================== */
@@ -379,22 +430,29 @@ function setTopic(tp){
   // Update AI Chat Display
   document.getElementById('chatTopicDisplay').innerText = chosenTopic;
   // Clear any previous chat content and reset for the new topic
-  document.getElementById('aiChatOutput').innerHTML = '<div class="ai-message">Hi there! Select a topic in the **Subjects** tab to start learning.</div>';
+  const chatOutput = document.getElementById('aiChatOutput');
+  chatOutput.innerHTML = '<div class="ai-message">Hi there! Select a topic in the **Subjects** tab to start learning.</div>';
+  setupAIChat(); // Load default message for new topic
 }
 
-/* ===================== LOAD MINDMAP ===================== */
+/* ===================== LOAD MINDMAP (MODIFIED FOR BUBBLES) ===================== */
 function loadMindmap(){
   const out = document.getElementById("mmOutput");
   if(!chosenTopic){ out.innerHTML = "Select a topic first!"; return; }
   const mmData = mmBank[chosenTopic];
   if(!mmData){ out.innerHTML = "Mindmap not available."; return; }
-  let html = `<h3>${chosenTopic}</h3><ul>`;
-  mmData.forEach(item => html += `<li>${item}</li>`);
-  html += "</ul>";
+  
+  let html = `<h3>${chosenTopic} - Key Concepts</h3><div class="mm-bubble-container">`;
+  
+  // Center node for effect (optional, but good for visual hierarchy)
+  html += `<div class="mm-bubble" style="background:#1346b5; transform:scale(1.1);">**${chosenTopic.toUpperCase()}**</div>`;
+  
+  mmData.forEach(item => html += `<div class="mm-bubble">${item}</div>`);
+  html += "</div>";
   out.innerHTML = html;
 }
 
-/* ===================== LOAD QUIZ (MODIFIED FOR MCQs) ===================== */
+/* ===================== LOAD QUIZ (MODIFIED FOR SUBMISSION LOGIC) ===================== */
 function loadQuiz(){
   const out = document.getElementById("quizOutput");
   document.getElementById("quizTopicTitle").innerText = chosenTopic || "(Topic Not Selected)";
@@ -406,10 +464,14 @@ function loadQuiz(){
 
   let html = `<form id="quizForm">`;
   q.forEach((question, index) => {
-    html += `<div class="quiz-question">`;
+    html += `<div class="quiz-question" data-question-index="${index}">`;
     html += `<p>${index + 1}. ${question.q}</p>`;
     question.options.forEach((option, optIndex) => {
-      html += `<label><input type="radio" name="q${index}" value="${option}" data-answer="${question.a === option ? 'true' : 'false'}">${option}</label>`;
+      // Use index for unique ID and name
+      html += `<label for="q${index}o${optIndex}">
+                <input type="radio" id="q${index}o${optIndex}" name="q${index}" value="${option}">
+                ${option}
+               </label>`;
     });
     html += `</div>`;
   });
@@ -423,30 +485,52 @@ function loadQuiz(){
 function submitQuiz() {
   const form = document.getElementById('quizForm');
   const questions = quizBankMCQ[chosenTopic];
+  const resultDiv = document.getElementById('quizResult');
   let correctCount = 0;
   let totalCount = questions.length;
-
-  questions.forEach((qData, index) => {
-    const radios = form.elements[`q${index}`];
-    let isCorrect = false;
-
-    // Find the selected radio button
-    for(let i = 0; i < radios.length; i++) {
-      if(radios[i].checked) {
-        if(radios[i].value === qData.a) {
-          isCorrect = true;
-          correctCount++;
-        }
-        break; // Exit loop once selection is found
-      }
-    }
-
-    // Optional: Provide visual feedback on the question itself
-    const questionDiv = radios[0].closest('.quiz-question');
-    questionDiv.style.backgroundColor = isCorrect ? '#e6ffe6' : '#ffe6e6';
+  
+  // Reset previous feedback
+  document.querySelectorAll('.quiz-question label').forEach(label => {
+    label.classList.remove('correct', 'incorrect');
   });
 
-  document.getElementById('quizResult').innerHTML = `You scored **${correctCount}** out of **${totalCount}**!`;
+  questions.forEach((qData, index) => {
+    const questionDiv = document.querySelector(`.quiz-question[data-question-index="${index}"]`);
+    const radios = questionDiv.querySelectorAll(`input[type="radio"][name="q${index}"]`);
+    let selectedAnswer = null;
+    let isCorrect = false;
+
+    // 1. Find the selected answer and mark feedback
+    radios.forEach(radio => {
+      const label = radio.closest('label');
+      // Always show the correct answer
+      if (radio.value === qData.a) {
+        label.classList.add('correct');
+      }
+      
+      if (radio.checked) {
+        selectedAnswer = radio.value;
+        if (selectedAnswer === qData.a) {
+          isCorrect = true;
+          correctCount++;
+        } else {
+          // If selected but incorrect, mark it red
+          label.classList.add('incorrect');
+        }
+      }
+      
+      // Disable inputs after submission
+      radio.disabled = true;
+    });
+  });
+  
+  // Disable the submit button
+  document.getElementById('submitQuizBtn').disabled = true;
+  document.getElementById('submitQuizBtn').innerText = "Quiz Submitted";
+
+
+  // 2. Display final score
+  resultDiv.innerHTML = `✅ You scored **${correctCount}** out of **${totalCount}**!`;
 }
 
 /* ===================== LOAD WORKSHEET ===================== */
@@ -464,9 +548,8 @@ function setupAIChat() {
   const sendBtn = document.getElementById('sendBtn');
   document.getElementById('chatTopicDisplay').innerText = chosenTopic || "(No Topic Selected)";
 
-  // Clear previous output and set initial message
-  out.innerHTML = '<div class="ai-message">Hi there! Select a topic in the **Subjects** tab to start learning.</div>';
-  if (chosenTopic) {
+  // Display initial message for the selected topic
+  if (chosenTopic && out.children.length <= 1) { // Only add if chat is empty or has only the welcome message
     const defaultResponse = aiChatBank[chosenTopic] || ["I am ready to help you with this topic! Try asking 'What is X?' or 'Give me an example of Y.'"];
     const topicMessage = `I see you selected **${chosenTopic}**. Here are some key points to start:`;
     let html = `<div class="ai-message">${topicMessage}<ul>`;
@@ -500,50 +583,69 @@ function handleChat() {
 
   // Display user message
   out.innerHTML += `<div class="user-message">You: ${userText}</div>`;
+  userInput.value = ''; // Clear input immediately
 
-  // Process and generate AI response (simple keyword matching for demo)
+  // Scroll to bottom
+  out.scrollTop = out.scrollHeight;
+
+  // Process and generate AI response
   const lowerCaseText = userText.toLowerCase();
-  let aiResponse = "I can only discuss the key concepts of **" + (chosenTopic || "your selected topic") + "**. Please select a topic or ask about a key term mentioned in the Mind Map.";
+  let aiResponse = `I can only discuss the key concepts of **${chosenTopic || "your selected topic"}**. Please ask about a specific point from the Mind Map, such as **${mmBank[chosenTopic]?.[0].split(':')[0].trim() || 'the main idea'}**.`;
 
-  if (chosenTopic && mmBank[chosenTopic]) {
-    const mindMapData = mmBank[chosenTopic].map(s => s.toLowerCase());
+  if (!chosenTopic) {
+    aiResponse = "Please select a **Topic** in the **Subjects** tab before using the AI Chat.";
+  } else {
+    const mindMapData = mmBank[chosenTopic];
 
-    if (lowerCaseText.includes("what is") || lowerCaseText.includes("define") || lowerCaseText.includes("meaning of")) {
-      // Find a matching definition/point in the mind map data
-      const keyword = lowerCaseText.replace(/what is|define|meaning of|tell me about/g, '').trim();
+    // --- Specific Keyword Matching (More robust default answers) ---
+
+    // 1. Definition/Explanation Queries
+    if (lowerCaseText.includes("what is") || lowerCaseText.includes("define") || lowerCaseText.includes("meaning of") || lowerCaseText.includes("explain")) {
+      const parts = lowerCaseText.split(/what is|define|meaning of|explain/);
+      let keyword = parts[parts.length - 1].trim().replace(/\?|\.|the|a|in|for/g, '').trim();
+      
       let found = false;
       for (const point of mindMapData) {
-        if (point.includes(keyword) || keyword.includes(point.split(':')[0].trim())) {
+        if (point.toLowerCase().includes(keyword) || keyword.includes(point.toLowerCase().split(':')[0].trim())) {
           aiResponse = `Regarding **${keyword}** in **${chosenTopic}**: ${point}`;
           found = true;
           break;
         }
       }
       if (!found) {
-        aiResponse = `I found no direct definition for **${keyword}** in the key concepts of **${chosenTopic}**. Try asking about one of the Mind Map points.`;
+        aiResponse = `I found no direct definition for **${keyword}** in the key concepts of **${chosenTopic}**. Try asking about one of the main Mind Map points.`;
       }
-    } else if (lowerCaseText.includes("example") || lowerCaseText.includes("illustrate")) {
-      aiResponse = `I can provide the key points from the Mind Map: <ul>${mmBank[chosenTopic].map(p => `<li>${p}</li>`).join('')}</ul>`;
-    } else if (lowerCaseText.includes("thank") || lowerCaseText.includes("bye")) {
-      aiResponse = "You're welcome! Feel free to ask another question or start a quiz when you're ready.";
+    } 
+    // 2. Summary/Overview Queries
+    else if (lowerCaseText.includes("tell me about") || lowerCaseText.includes("summary") || lowerCaseText.includes("overview")) {
+      aiResponse = `Here is a summary of the key points for **${chosenTopic}**:\n<ul>${mindMapData.map(p => `<li>${p}</li>`).join('')}</ul>`;
+    } 
+    // 3. Examples/Facts Queries (Simple fallbacks)
+    else if (lowerCaseText.includes("example") || lowerCaseText.includes("fact") || lowerCaseText.includes("give me")) {
+      aiResponse = `One key fact about **${chosenTopic}** is: **${mindMapData[1] || mindMapData[0]}**.`;
+    }
+    // 4. Greetings
+    else if (lowerCaseText.includes("hello") || lowerCaseText.includes("hi")) {
+      aiResponse = `Hello! I'm ready to help you learn about **${chosenTopic}**. What question do you have?`;
+    } 
+    // 5. Thanks
+    else if (lowerCaseText.includes("thank") || lowerCaseText.includes("bye")) {
+      aiResponse = "You're welcome! Feel free to ask another question or start a quiz when you're ready. Have a good day!";
     }
   }
 
   // Display AI response
   setTimeout(() => {
     out.innerHTML += `<div class="ai-message">AI: ${aiResponse}</div>`;
-    out.scrollTop = out.scrollHeight; // Scroll to the bottom
+    out.scrollTop = out.scrollHeight; // Scroll to the bottom again
   }, 500); // Small delay for effect
-
-  // Clear input
-  userInput.value = '';
 }
-
 
 </script>
 
 <script>
 /* ===================== MINDMAP DATA ===================== */
+// (Data remains unchanged, but is used by the modified loadMindmap/handleChat functions)
 
 const mmBank = {
 "Grammar": [
@@ -577,16 +679,16 @@ const mmBank = {
 
 /* Math */
 "Algebra": [
-  "Deals with letters & symbols representing numbers.",
+  "Deals with letters & symbols representing numbers (variables).",
   "Expressions: combination of variables, constants, operators.",
-  "Equations: expressions with equality sign.",
-  "Solve by isolating variable.",
+  "Equations: expressions with equality sign (e.g., x + 5 = 10).",
+  "Solve by isolating the variable.",
   "Used in real-life calculations."
 ],
 "Linear Equations": [
-  "Equation of form ax + b = 0.",
+  "Equation of form ax + b = 0, where variables have a degree of 1.",
   "Solution found by balancing both sides.",
-  "Graph is a straight line.",
+  "Graph of a linear equation is a straight line.",
   "Variables usually of degree 1.",
   "Used in cost calculations & daily math."
 ],
@@ -594,118 +696,118 @@ const mmBank = {
   "Study of areas & volumes.",
   "2D shapes: square, rectangle, triangle, circle.",
   "3D shapes: cube, cuboid, cylinder, cone.",
-  "Formulas for perimeter & area.",
+  "Requires formulas for perimeter & area.",
   "Used in construction & measurements."
 ],
 
 /* Science */
 "Reproduction in Animals": [
   "Process by which living organisms produce offspring.",
-  "Types: sexual & asexual reproduction.",
+  "Types: sexual (with gametes) & asexual (single parent) reproduction.",
   "Fertilisation: fusion of male & female gametes.",
-  "Viviparous = give birth; Oviparous = lay eggs.",
-  "Zygote develops into embryo."
+  "Viviparous = give birth to young; Oviparous = lay eggs.",
+  "Zygote develops into an embryo."
 ],
 "Sound": [
   "Sound is produced by vibrations.",
   "Travels in form of waves.",
-  "Requires a medium (solid, liquid, gas).",
-  "Frequency determines pitch.",
-  "Amplitude determines loudness."
+  "Requires a medium (solid, liquid, or gas) to propagate.",
+  "Frequency determines pitch (high frequency = high pitch).",
+  "Amplitude determines loudness (large amplitude = loud sound)."
 ],
 "Electricity": [
   "Flow of electric current through circuits.",
-  "Conductors allow flow; Insulators resist flow.",
-  "A battery provides potential difference.",
-  "Switch opens/closes circuit.",
-  "Electric fuse protects appliances."
+  "Conductors allow current flow; Insulators resist flow.",
+  "A battery provides potential difference (voltage).",
+  "Switch opens/closes the circuit.",
+  "Electric fuse protects appliances from excessive current."
 ],
 
 /* Social Science */
 "1857 Revolt": [
-  "First major rebellion against British rule.",
-  "Causes: political, economic, military & cultural.",
+  "First major rebellion against British rule in India.",
+  "Causes: political, economic, military & cultural (like the greased cartridges).",
   "Leaders: Rani Lakshmibai, Mangal Pandey, Bahadur Shah Zafar.",
   "Widespread anger united Indians.",
-  "Resulted in end of Company rule."
+  "Resulted in the end of the British East India Company rule."
 ],
 "Resources": [
-  "Anything useful to humans.",
+  "Anything useful to humans that satisfies a need.",
   "Types: natural, human-made, human resources.",
-  "Renewable vs Non-renewable.",
-  "Conservation is essential.",
+  "Renewable (replenished quickly) vs Non-renewable (limited supply).",
+  "Conservation is essential for future use.",
   "Sustainable use ensures future security."
 ],
 "Judiciary": [
   "Interprets laws & ensures justice.",
-  "Structure: Supreme Court → High Courts → District Courts.",
-  "Independent of Legislature & Executive.",
-  "Protects fundamental rights.",
+  "Structure: Supreme Court (apex) → High Courts → District Courts.",
+  "It is independent of the Legislature & Executive branches.",
+  "Protects fundamental rights of citizens.",
   "Provides dispute resolution."
 ],
 
 /* Hindi */
 "Vyakaran": [
-  "Hindi grammar rules.",
-  "Includes Sangya, Sarvanaam, Kriya, Visheshan.",
-  "Vakya ke bhed & Sandhi.",
-  "Linguistic structure of Hindi.",
-  "Improves clarity & correctness."
+  "Refers to Hindi grammar rules (व्याकरण).",
+  "Includes Sangya (Noun), Sarvanaam (Pronoun), Kriya (Verb), Visheshan (Adjective).",
+  "Covers Vakya ke bhed (Sentence types) & Sandhi (Joining words).",
+  "The linguistic structure of Hindi.",
+  "Improves clarity & correctness of the language."
 ],
 "Patra Lekhan": [
   "Letter writing format in Hindi.",
-  "Do types: Anaupcharik & Aupcharik.",
-  "Includes address, date, salutation.",
-  "Body is clear & respectful.",
+  "Two main types: Anaupcharik (Informal) & Aupcharik (Formal).",
+  "Includes address, date, and salutation (संबोधन).",
+  "Body should be clear & respectful.",
   "Ends with signature."
 ],
 
 /* Computer */
 "HTML": [
-  "HyperText Markup Language.",
-  "Used to design websites.",
+  "HyperText Markup Language, the standard language for web pages.",
+  "Used to structure content on websites.",
   "Elements: <html>, <body>, <h1>, <p>.",
-  "Tags can be nested.",
-  "Browsers read and display HTML."
+  "Tags can be nested inside one another.",
+  "Browsers read and display HTML content."
 ],
 "AI Basics": [
-  "AI = machines mimicking human intelligence.",
-  "Examples: chatbots, prediction systems.",
-  "Machine learning trains models using data.",
-  "Used in games, assistants, cars.",
-  "Future tech advancing rapidly."
+  "AI = machines mimicking human intelligence to perform tasks.",
+  "Examples: chatbots, recommendation systems, prediction systems.",
+  "Machine learning trains models using data to improve performance.",
+  "Used in games, smart assistants, self-driving cars.",
+  "Future technology advancing rapidly."
 ],
 
 /* Sanskrit */
 "Shabd Roop": [
-  "Forms of nouns in Sanskrit.",
-  "Based on gender, vibhakti & vachana.",
+  "Forms of nouns in Sanskrit (शब्द रूप).",
+  "Based on gender (लिंग), vibhakti (case) & vachana (number).",
   "Examples: रामः, रामम्, रामेण.",
-  "Memorisation improves translation.",
-  "Used in sentence structure."
+  "Memorisation improves Sanskrit translation and understanding.",
+  "Used for correct sentence structure."
 ],
 "Dhatu Roop": [
-  "Verb forms in Sanskrit.",
-  "Shows tense, number & person.",
+  "Verb forms in Sanskrit (धातु रूप).",
+  "Shows tense (लकार), number, & person (पुरुष).",
   "Example: पठति, पठतः, पठन्ति.",
-  "Different lakaras: Lat, Lang, Lot.",
-  "Essential for verb agreement."
+  "Different lakaras: Lat (Present), Lang (Past), Lot (Imperative).",
+  "Essential for correct verb agreement in sentences."
 ],
 
 /* French */
 "French Grammar": [
   "Basic rules of French language.",
-  "Articles: le, la, les.",
-  "Verbs: être, avoir.",
-  "Sentence structure = Subject + Verb + Object.",
-  "Nouns have genders."
+  "Articles: le (masculine singular), la (feminine singular), les (plural).",
+  "Key Verbs: être (to be) and avoir (to have).",
+  "Standard Sentence structure = Subject + Verb + Object.",
+  "All French nouns have genders (masculine or feminine)."
 ],
 "Culture": [
   "French traditions & lifestyle.",
-  "Popular foods: croissants, baguettes.",
-  "Eiffel Tower symbolises France.",
-  "Rich art & literature history.",
-  "French spoken in 29 countries."
+  "Popular foods: croissants, baguettes, cheese.",
+  "Eiffel Tower in Paris symbolises France.",
+  "Rich history in art & literature.",
+  "French is spoken in 29 countries worldwide."
 ]
 };
 
@@ -759,12 +861,29 @@ const quizBankMCQ = {
 { q: "Which tag is used to create a large heading?", options: ["<h1-h6>", "<header>", "<h1>", "<heading>"], a: "<h1>" },
 { q: "Which of the following is an example of an empty tag?", options: ["<p>", "<a>", "<br>", "<body>"], a: "<br>" },
 { q: "What are the structural components of an HTML page, enclosed in angle brackets (< >), called?", options: ["Elements", "Attributes", "Tags", "Pointers"], a: "Tags" }
+],
+
+"Vyakaran": [
+{ q: "संज्ञा किसे कहते हैं?", options: ["क्रिया का नाम", "सर्वनाम का नाम", "किसी व्यक्ति, वस्तु या स्थान का नाम", "विशेषण"], a: "किसी व्यक्ति, वस्तु या स्थान का नाम" },
+{ q: "क्रिया के भेद कितने हैं?", options: ["एक", "दो", "तीन", "चार"], a: "दो" },
+{ q: "वह (वह) किस प्रकार का सर्वनाम है?", options: ["निजवाचक", "पुरुषवाचक", "संबंधवाचक", "निश्चयवाचक"], a: "पुरुषवाचक" },
+{ q: "विशेषण क्या बताता है?", options: ["क्रिया", "संज्ञा की विशेषता", "समय", "स्थान"], a: "संज्ञा की विशेषता" },
+{ q: "वर्तनी की शुद्धता क्यों ज़रूरी है?", options: ["सुंदर लिखने के लिए", "लिखने के लिए", "पढ़ने के लिए", "अर्थ की स्पष्टता के लिए"], a: "अर्थ की स्पष्टता के लिए" }
+],
+
+"1857 Revolt": [
+{ q: "The 1857 Revolt is also known as:", options: ["The Sepoy Mutiny", "The Great War", "The Bengal Famine", "The Quit India Movement"], a: "The Sepoy Mutiny" },
+{ q: "Who was a prominent leader of the revolt from Jhansi?", options: ["Nana Saheb", "Tantia Tope", "Rani Lakshmibai", "Begum Hazrat Mahal"], a: "Rani Lakshmibai" },
+{ q: "What was the immediate cause often cited for the start of the revolt?", options: ["Economic policies", "Political annexations", "Social reforms", "Greased cartridges rumour"], a: "Greased cartridges rumour" },
+{ q: "What major change occurred in India's administration after the revolt?", options: ["Transfer of power to the Indian National Congress", "Transfer of power from the East India Company to the British Crown", "End of British rule", "Establishment of the Governor-General position"], a: "Transfer of power from the East India Company to the British Crown" },
+{ q: "Who was the Mughal Emperor proclaimed as the leader of the rebels?", options: ["Akbar II", "Shah Alam II", "Bahadur Shah Zafar", "Jahangir"], a: "Bahadur Shah Zafar" }
 ]
 // Add more quiz data here for all topics in subjectTopics if needed
 };
 
-// Placeholder for other banks (unchanged but kept for context and completeness)
-const quizBank = {}; // Original single-line quizBank is replaced by quizBankMCQ
+
+/* ===================== WORKSHEET BANK (UNCHANGED) ===================== */
+
 const wsBank = {
 "Grammar": [
 "1. Write 5 nouns.",
@@ -915,8 +1034,7 @@ const wsBank = {
 ]
 };
 
-/* ===================== AI CHAT DEFAULT ANSWERS ===================== */
-// This bank uses the Mind Map data for default responses when a topic is selected.
+/* ===================== AI CHAT DEFAULT ANSWERS (UNCHANGED, USES mmBank) ===================== */
 const aiChatBank = mmBank;
 </script>
 
