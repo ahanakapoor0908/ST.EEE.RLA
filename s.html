@@ -143,13 +143,65 @@ body{
   border-radius:12px; margin:10px 0;
 }
 
+/* New styles for Quiz */
+.quiz-question {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+.quiz-question p {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #2b4b9b;
+}
+.quiz-question label {
+  display: block;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.quiz-question label:hover {
+  background-color: #f0f8ff;
+}
+input[type="radio"] {
+  margin-right: 8px;
+}
+#submitQuizBtn {
+  margin-top: 20px;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 12px;
+  background: #4CAF50;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+#quizResult {
+  margin-top: 15px;
+  font-weight: bold;
+  color: #1d3270;
+}
+
+/* New styles for AI Chat */
+.ai-message {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background-color: #e8f0ff;
+}
+.user-message {
+  background-color: #ffe8e8;
+  text-align: right;
+}
+
 /* Hidden for teacher-only features: base hidden then shown via JS */
 .teacher-only { display: none; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
 <div id="loginPage">
   <div class="login-container">
     <div class="login-left">
@@ -171,7 +223,6 @@ body{
   </div>
 </div>
 
-<!-- APP PAGE -->
 <div id="appPage">
   <div id="sidebar">
     <h2>STERLA</h2>
@@ -187,7 +238,6 @@ body{
 
   <div id="main">
 
-    <!-- HOME -->
     <div id="homePage" class="page active">
       <h1 id="welcomeUser"></h1>
       <div id="welcomeBox" class="glass">
@@ -199,7 +249,6 @@ body{
       </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard" class="page">
       <h1>Dashboard</h1>
       <h2>Announcements</h2>
@@ -208,47 +257,50 @@ body{
       <div class="announce">• Math homework submission closes tonight</div>
     </div>
 
-    <!-- SUBJECTS -->
     <div id="subjectsPage" class="page">
       <h1>Select a Subject</h1>
       <div id="subjectsContainer"></div>
     </div>
 
-    <!-- TOPICS -->
     <div id="topicPage" class="page">
       <h1 id="topicTitle"></h1>
       <div id="topicButtons"></div>
     </div>
 
-    <!-- MINDMAP -->
     <div id="mmPage" class="page">
       <h1>Mind Map</h1>
       <div class="output-box" id="mmOutput"></div>
     </div>
 
-    <!-- QUIZ -->
     <div id="quizPage" class="page">
-      <h1>Quiz</h1>
-      <div class="output-box" id="quizOutput"></div>
+      <h1>Quiz on <span id="quizTopicTitle"></span></h1>
+      <div class="output-box" id="quizOutput">
+        </div>
     </div>
 
-    <!-- WORKSHEET -->
     <div id="wsPage" class="page">
       <h1>Worksheet</h1>
       <div class="output-box" id="wsOutput"></div>
     </div>
 
-    <!-- TEACHER PANEL -->
     <div id="managePage" class="page teacher-only">
       <h1>Teacher Panel</h1>
       <p>Here you can upload worksheets, add quizzes, view submissions, manage announcements.</p>
     </div>
 
-    <!-- AI CHAT -->
     <div id="aiChatPage" class="page">
       <h1>AI Chat Assistant</h1>
-      <iframe src="https://app.schoolai.com/share/space/clnaw1t7u000ayvpt3po1373j"
-        style="width:100%; height:600px; border:none; border-radius:12px;"></iframe>
+      <p>Ask a question about the selected topic: <span id="chatTopicDisplay" style="font-weight:bold; color:#1346b5;">(No Topic Selected)</span></p>
+
+      <div class="output-box" id="aiChatOutput" style="height:450px; overflow-y:auto; padding: 15px;">
+        <div class="ai-message">Hi there! Select a topic in the **Subjects** tab to start learning.</div>
+        <div id="defaultAiResponse"></div>
+      </div>
+
+      <div style="display:flex; margin-top:15px;">
+        <input type="text" id="userInput" placeholder="Type your question..." style="flex-grow:1; padding:12px; border-radius:12px 0 0 12px; border:1px solid #ccc;" />
+        <button id="sendBtn" style="padding:12px 20px; border:none; border-radius:0 12px 12px 0; background:#2b4b9b; color:white; cursor:pointer;">Send</button>
+      </div>
     </div>
 
   </div>
@@ -297,6 +349,7 @@ function showPage(p){
   if(p === "mmPage") loadMindmap();
   if(p === "quizPage") loadQuiz();
   if(p === "wsPage") loadWorksheet();
+  if(p === "aiChatPage") setupAIChat(); // New function call
 }
 
 /* ===================== LOAD SUBJECTS ===================== */
@@ -323,6 +376,10 @@ function selectSubject(sub){
 function setTopic(tp){
   chosenTopic = tp;
   alert("Topic selected: " + tp);
+  // Update AI Chat Display
+  document.getElementById('chatTopicDisplay').innerText = chosenTopic;
+  // Clear any previous chat content and reset for the new topic
+  document.getElementById('aiChatOutput').innerHTML = '<div class="ai-message">Hi there! Select a topic in the **Subjects** tab to start learning.</div>';
 }
 
 /* ===================== LOAD MINDMAP ===================== */
@@ -337,12 +394,59 @@ function loadMindmap(){
   out.innerHTML = html;
 }
 
-/* ===================== LOAD QUIZ ===================== */
+/* ===================== LOAD QUIZ (MODIFIED FOR MCQs) ===================== */
 function loadQuiz(){
   const out = document.getElementById("quizOutput");
-  const q = quizBank[chosenTopic];
-  if(!q){ out.innerHTML = "Quiz not available for this topic."; return; }
-  out.innerHTML = q.map(s => `<p>${s}</p>`).join("");
+  document.getElementById("quizTopicTitle").innerText = chosenTopic || "(Topic Not Selected)";
+
+  if(!chosenTopic){ out.innerHTML = "Select a topic first!"; return; }
+
+  const q = quizBankMCQ[chosenTopic];
+  if(!q){ out.innerHTML = "Multiple-choice Quiz not available for this topic."; return; }
+
+  let html = `<form id="quizForm">`;
+  q.forEach((question, index) => {
+    html += `<div class="quiz-question">`;
+    html += `<p>${index + 1}. ${question.q}</p>`;
+    question.options.forEach((option, optIndex) => {
+      html += `<label><input type="radio" name="q${index}" value="${option}" data-answer="${question.a === option ? 'true' : 'false'}">${option}</label>`;
+    });
+    html += `</div>`;
+  });
+  html += `<button type="button" id="submitQuizBtn" onclick="submitQuiz()">Submit Quiz</button>`;
+  html += `<div id="quizResult"></div>`;
+  html += `</form>`;
+
+  out.innerHTML = html;
+}
+
+function submitQuiz() {
+  const form = document.getElementById('quizForm');
+  const questions = quizBankMCQ[chosenTopic];
+  let correctCount = 0;
+  let totalCount = questions.length;
+
+  questions.forEach((qData, index) => {
+    const radios = form.elements[`q${index}`];
+    let isCorrect = false;
+
+    // Find the selected radio button
+    for(let i = 0; i < radios.length; i++) {
+      if(radios[i].checked) {
+        if(radios[i].value === qData.a) {
+          isCorrect = true;
+          correctCount++;
+        }
+        break; // Exit loop once selection is found
+      }
+    }
+
+    // Optional: Provide visual feedback on the question itself
+    const questionDiv = radios[0].closest('.quiz-question');
+    questionDiv.style.backgroundColor = isCorrect ? '#e6ffe6' : '#ffe6e6';
+  });
+
+  document.getElementById('quizResult').innerHTML = `You scored **${correctCount}** out of **${totalCount}**!`;
 }
 
 /* ===================== LOAD WORKSHEET ===================== */
@@ -350,8 +454,92 @@ function loadWorksheet(){
   const out = document.getElementById("wsOutput");
   const w = wsBank[chosenTopic];
   if(!w){ out.innerHTML = "Worksheet not available for this topic."; return; }
-  out.innerHTML = w.map(s => `<p>${s}</p>`).join("");
+  out.innerHTML = w.map((s, index) => `<p>${index + 1}. ${s}</p>`).join("");
 }
+
+/* ===================== AI CHAT (MODIFIED FOR DEFAULT ANSWERS) ===================== */
+function setupAIChat() {
+  const out = document.getElementById('aiChatOutput');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  document.getElementById('chatTopicDisplay').innerText = chosenTopic || "(No Topic Selected)";
+
+  // Clear previous output and set initial message
+  out.innerHTML = '<div class="ai-message">Hi there! Select a topic in the **Subjects** tab to start learning.</div>';
+  if (chosenTopic) {
+    const defaultResponse = aiChatBank[chosenTopic] || ["I am ready to help you with this topic! Try asking 'What is X?' or 'Give me an example of Y.'"];
+    const topicMessage = `I see you selected **${chosenTopic}**. Here are some key points to start:`;
+    let html = `<div class="ai-message">${topicMessage}<ul>`;
+    defaultResponse.forEach(point => {
+      html += `<li>${point}</li>`;
+    });
+    html += `</ul></div>`;
+    out.innerHTML += html;
+    out.scrollTop = out.scrollHeight;
+  }
+
+  // Remove existing event listeners to prevent duplicates
+  sendBtn.onclick = null;
+  userInput.onkeypress = null;
+
+  // Set new event listeners
+  sendBtn.onclick = handleChat;
+  userInput.onkeypress = function(e) {
+    if (e.key === 'Enter') {
+      handleChat();
+    }
+  };
+}
+
+function handleChat() {
+  const userInput = document.getElementById('userInput');
+  const out = document.getElementById('aiChatOutput');
+  const userText = userInput.value.trim();
+
+  if (userText === '') return;
+
+  // Display user message
+  out.innerHTML += `<div class="user-message">You: ${userText}</div>`;
+
+  // Process and generate AI response (simple keyword matching for demo)
+  const lowerCaseText = userText.toLowerCase();
+  let aiResponse = "I can only discuss the key concepts of **" + (chosenTopic || "your selected topic") + "**. Please select a topic or ask about a key term mentioned in the Mind Map.";
+
+  if (chosenTopic && mmBank[chosenTopic]) {
+    const mindMapData = mmBank[chosenTopic].map(s => s.toLowerCase());
+
+    if (lowerCaseText.includes("what is") || lowerCaseText.includes("define") || lowerCaseText.includes("meaning of")) {
+      // Find a matching definition/point in the mind map data
+      const keyword = lowerCaseText.replace(/what is|define|meaning of|tell me about/g, '').trim();
+      let found = false;
+      for (const point of mindMapData) {
+        if (point.includes(keyword) || keyword.includes(point.split(':')[0].trim())) {
+          aiResponse = `Regarding **${keyword}** in **${chosenTopic}**: ${point}`;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        aiResponse = `I found no direct definition for **${keyword}** in the key concepts of **${chosenTopic}**. Try asking about one of the Mind Map points.`;
+      }
+    } else if (lowerCaseText.includes("example") || lowerCaseText.includes("illustrate")) {
+      aiResponse = `I can provide the key points from the Mind Map: <ul>${mmBank[chosenTopic].map(p => `<li>${p}</li>`).join('')}</ul>`;
+    } else if (lowerCaseText.includes("thank") || lowerCaseText.includes("bye")) {
+      aiResponse = "You're welcome! Feel free to ask another question or start a quiz when you're ready.";
+    }
+  }
+
+  // Display AI response
+  setTimeout(() => {
+    out.innerHTML += `<div class="ai-message">AI: ${aiResponse}</div>`;
+    out.scrollTop = out.scrollHeight; // Scroll to the bottom
+  }, 500); // Small delay for effect
+
+  // Clear input
+  userInput.value = '';
+}
+
+
 </script>
 
 <script>
@@ -522,293 +710,61 @@ const mmBank = {
 };
 
 
-/* ===================== QUIZ BANK (10 each) ===================== */
+/* ===================== QUIZ BANK (MODIFIED FOR MCQs) ===================== */
 
-const quizBank = {
+const quizBankMCQ = {
 "Grammar": [
-"1. Which of the following is a noun?",
-"2. Identify the verb in the sentence.",
-"3. What is an adjective?",
-"4. Define adverb.",
-"5. Choose the correct pronoun.",
-"6. What is a clause?",
-"7. What is a phrase?",
-"8. Identify the subject.",
-"9. Identify the predicate.",
-"10. Which sentence is in past tense?"
+{ q: "Which of the following is a noun?", options: ["Quickly", "Jump", "Happiness", "Run"], a: "Happiness" },
+{ q: "Identify the verb in the sentence: 'The cat slept soundly.'", options: ["The", "cat", "slept", "soundly"], a: "slept" },
+{ q: "What part of speech modifies a verb, adjective, or another adverb?", options: ["Noun", "Adverb", "Pronoun", "Preposition"], a: "Adverb" },
+{ q: "The word 'She' is an example of a:", options: ["Noun", "Verb", "Adjective", "Pronoun"], a: "Pronoun" },
+{ q: "Which punctuation mark is used to separate items in a list?", options: [".", "?", ",", "!"], a: "," },
 ],
 
 "Formal Letter": [
-"1. What comes first: sender or receiver address?",
-"2. What is written in the subject line?",
-"3. What tone must a formal letter have?",
-"4. What comes after salutation?",
-"5. How many paragraphs in body?",
-"6. What is the closing phrase?",
-"7. Should slang be used?",
-"8. Where does date go?",
-"9. What is letter of complaint?",
-"10. What is letter of enquiry?"
+{ q: "What should be placed directly below the Sender’s Address?", options: ["Salutation", "Subject", "Date", "Body"], a: "Date" },
+{ q: "What tone must a formal letter maintain?", options: ["Casual", "Humorous", "Sarcastic", "Formal"], a: "Formal" },
+{ q: "Which closing phrase is typically used in a formal letter?", options: ["Best wishes", "Yours sincerely", "See you soon", "Love"], a: "Yours sincerely" },
+{ q: "How many main paragraphs does the body of a formal letter usually have?", options: ["One", "Two", "Three", "Four"], a: "Three" },
+{ q: "What is the purpose of the Subject line?", options: ["To greet the reader", "To introduce the sender", "To state the main reason for the letter", "To provide contact details"], a: "To state the main reason for the letter" }
 ],
 
-"Speech": [
-"1. What is a speech?",
-"2. What is the first part of a speech?",
-"3. Why eye contact is important?",
-"4. What are main points called?",
-"5. What is the conclusion?",
-"6. Should speech be formal?",
-"7. What is tone modulation?",
-"8. What is opening hook?",
-"9. Should speech be memorised?",
-"10. What is rhetorical question?"
-],
-
-"Prose": [
-"1. What is prose?",
-"2. Does prose use rhythm?",
-"3. What is a paragraph?",
-"4. What is narrative prose?",
-"5. What are characters?",
-"6. What is theme?",
-"7. What is setting?",
-"8. What is tone?",
-"9. What is conflict?",
-"10. What is moral?"
-],
-
-/* Math 10 each... */
 "Algebra": [
-"1. What is a variable?",
-"2. What is a constant?",
-"3. Simplify: 2x + 3x",
-"4. Solve: x + 5 = 11",
-"5. Expand: (x + 2)(x + 3)",
-"6. What is an expression?",
-"7. What is an equation?",
-"8. What is coefficient?",
-"9. Solve: 3x = 21",
-"10. Simplify: x² × x³"
+{ q: "In the expression $5x + 3$, $x$ is the:", options: ["Coefficient", "Constant", "Variable", "Operator"], a: "Variable" },
+{ q: "Simplify the expression: $4a + 2a - a$.", options: ["$5a$", "$6a$", "$3a$", "$4a^2$"], a: "$5a$" },
+{ q: "Solve for $x$: $x - 7 = 15$.", options: ["$x = 8$", "$x = 22$", "$x = 105$", "$x = 7$"], a: "$x = 22$" },
+{ q: "What is the result of expanding $(y+4)(y-4)$?", options: ["$y^2 + 16$", "$y^2 - 16$", "$2y$", "$y^2 + 8y + 16$"], a: "$y^2 - 16$" },
+{ q: "What is a number multiplied by a variable called?", options: ["Exponent", "Constant", "Term", "Coefficient"], a: "Coefficient" }
 ],
 
-"Linear Equations": [
-"1. Define linear equation.",
-"2. Solve: x + 7 = 11",
-"3. Solve: 2x = 14",
-"4. What degree is a linear equation?",
-"5. What graph shape?",
-"6. Solve: 3x + 5 = 20",
-"7. What is variable?",
-"8. What does balancing mean?",
-"9. Solve: x/2 = 6",
-"10. Solve: 5x – 10 = 0"
-],
-
-"Mensuration": [
-"1. Formula for area of square?",
-"2. Area of rectangle?",
-"3. Perimeter?",
-"4. Volume of cube?",
-"5. Area of triangle?",
-"6. Area of circle?",
-"7. What is radius?",
-"8. What is diameter?",
-"9. Volume of cylinder?",
-"10. Perimeter of circle?"
-],
-
-/* Science */
 "Reproduction in Animals": [
-"1. What is sexual reproduction?",
-"2. What is asexual reproduction?",
-"3. What is fertilisation?",
-"4. What is zygote?",
-"5. What are gametes?",
-"6. Oviparous meaning?",
-"7. Viviparous meaning?",
-"8. Example of asexual reproduction.",
-"9. Internal fertilisation occurs where?",
-"10. What is budding?"
-],
-
-"Sound": [
-"1. What produces sound?",
-"2. What is vibration?",
-"3. Medium required?",
-"4. Frequency measures?",
-"5. Amplitude measures?",
-"6. High frequency = ? pitch",
-"7. Soft sound = ? amplitude",
-"8. Unit of frequency?",
-"9. Sound travels fastest in?",
-"10. What is echo?"
+{ q: "The process of producing offspring is called:", options: ["Respiration", "Digestion", "Reproduction", "Excretion"], a: "Reproduction" },
+{ q: "What is the fusion of male and female gametes called?", options: ["Zygote formation", "Embryo development", "Fertilisation", "Budding"], a: "Fertilisation" },
+{ q: "Animals that lay eggs are known as:", options: ["Viviparous", "Mammals", "Amphibious", "Oviparous"], a: "Oviparous" },
+{ q: "Which of the following is a type of asexual reproduction?", options: ["Binary Fission", "Internal Fertilisation", "Oviparity", "Sexual Reproduction"], a: "Binary Fission" },
+{ q: "The fertilised egg is also known as a:", options: ["Embryo", "Foetus", "Zygote", "Gamete"], a: "Zygote" }
 ],
 
 "Electricity": [
-"1. What is electric current?",
-"2. What is circuit?",
-"3. What is conductor?",
-"4. What is insulator?",
-"5. What is fuse?",
-"6. Why switch used?",
-"7. What is battery?",
-"8. Symbol of cell?",
-"9. What flows in wires?",
-"10. What is filament?"
+{ q: "The flow of electric charge is called:", options: ["Resistance", "Voltage", "Current", "Power"], a: "Current" },
+{ q: "A material that allows electric current to flow through it easily is a:", options: ["Insulator", "Resistor", "Conductor", "Semiconductor"], a: "Conductor" },
+{ q: "What provides the potential difference (voltage) in a circuit?", options: ["Wire", "Switch", "Bulb", "Battery/Cell"], a: "Battery/Cell" },
+{ q: "A device used to break or complete an electric circuit is a:", options: ["Fuse", "Ammeter", "Switch", "Filament"], a: "Switch" },
+{ q: "What is the main function of an electric fuse?", options: ["To increase current", "To measure voltage", "To protect appliances from excessive current", "To store electricity"], a: "To protect appliances from excessive current" }
 ],
 
-/* Social Science */
-"1857 Revolt": [
-"1. What year revolt happened?",
-"2. Who started the revolt?",
-"3. Who led in Jhansi?",
-"4. Who was last Mughal ruler?",
-"5. What was main cause?",
-"6. What type of revolt?",
-"7. Cartridge rumour linked to?",
-"8. What ended after revolt?",
-"9. What started after?",
-"10. Who joined revolt?"
-],
-
-"Resources": [
-"1. What is resource?",
-"2. Types of resources?",
-"3. Renewable meaning?",
-"4. Non-renewable example?",
-"5. Conservation meaning?",
-"6. Sustainable development?",
-"7. Human-made resource?",
-"8. Natural resource?",
-"9. Human resource?",
-"10. Why resources limited?"
-],
-
-"Judiciary": [
-"1. Highest court of India?",
-"2. Middle level court?",
-"3. Role of judiciary?",
-"4. Fundamental rights protected?",
-"5. Who interprets law?",
-"6. What is PIL?",
-"7. What is dispute resolution?",
-"8. What is independent judiciary?",
-"9. Who appoints judges?",
-"10. What is High Court?"
-],
-
-/* Hindi */
-"Vyakaran": [
-"1. Sangya kya hoti hai?",
-"2. Sarvanaam kya hota hai?",
-"3. Kriya kisay kehte hain?",
-"4. Visheshan kya hota hai?",
-"5. Vakya ke bhed?",
-"6. Ling ke prakar?",
-"7. Vachan kya hota hai?",
-"8. Kaal ke prakar?",
-"9. Upsarg kya hai?",
-"10. Pratyay kya hai?"
-],
-
-"Patra Lekhan": [
-"1. Patra ke prakar?",
-"2. Aupcharik patra ka format?",
-"3. Patra mein tareekh kaha hoti hai?",
-"4. Vishay kya hota hai?",
-"5. Sharir ke kitne bhaag?",
-"6. Samapan kis se hota hai?",
-"7. Sambodhan kya hai?",
-"8. Pata kis tarah likhte hain?",
-"9. Abhivadan kya hota hai?",
-"10. Vyakaran ki suddhata kyun zaruri?"
-],
-
-/* Computer */
 "HTML": [
-"1. HTML full form?",
-"2. Tag kya hai?",
-"3. <h1> tag ka use?",
-"4. <p> tag ka use?",
-"5. Hyperlink tag?",
-"6. Image tag?",
-"7. Attribute kya hai?",
-"8. List tags?",
-"9. Table ka tag?",
-"10. HTML file extension?"
-],
-
-"AI Basics": [
-"1. AI full form?",
-"2. Machine learning kya hai?",
-"3. AI ka ek example?",
-"4. Chatbot kya hai?",
-"5. Data kya hota hai?",
-"6. Algorithm kya hai?",
-"7. Robotics kya hai?",
-"8. Automation kya hai?",
-"9. Smart assistants example?",
-"10. AI ka future impact?"
-],
-
-/* Sanskrit */
-"Shabd Roop": [
-"1. Shabd roop kya hai?",
-"2. Ram shabd ka pratham vibhakti?",
-"3. Hari shabd kis ling ka hai?",
-"4. Vibhakti kitni hoti hain?",
-"5. Ram shabd ka dwitiya vibhakti?",
-"6. Pulling kya hai?",
-"7. Striling kya hai?",
-"8. Napunsak ling kya hai?",
-"9. Ekvachan kya hai?",
-"10. Bahuvachan kya hai?"
-],
-
-"Dhatu Roop": [
-"1. Dhatu kya hai?",
-"2. Lakar kitne hote hain?",
-"3. Path dhatu ka lat lakar?",
-"4. Kriyapad kya hai?",
-"5. Dhatu roop kyun padte hain?",
-"6. Karm kya hai?",
-"7. Karak kya hota hai?",
-"8. Purush kitne?",
-"9. Vakya mein kriya?",
-"10. Dhatu + pratya = ?"
-],
-
-/* French */
-"French Grammar": [
-"1. Article ‘le’ used for?",
-"2. Verb ‘être’ means?",
-"3. Verb ‘avoir’ means?",
-"4. French has how many genders?",
-"5. Plural article?",
-"6. Bonjour means?",
-"7. Merci means?",
-"8. Noun meaning?",
-"9. Adjective meaning?",
-"10. Sentence pattern?"
-],
-
-"Culture": [
-"1. Capital of France?",
-"2. French famous tower?",
-"3. Popular French bread?",
-"4. French national day?",
-"5. French eating style?",
-"6. Major French museum?",
-"7. Popular French art form?",
-"8. French greeting?",
-"9. Famous French dessert?",
-"10. Language spoken where?"
+{ q: "What does HTML stand for?", options: ["Hyper Text Makeup Language", "Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlink and Text Markup Language"], a: "Hyper Text Markup Language" },
+{ q: "Which tag defines the main content of the HTML document?", options: ["<head>", "<title>", "<body>", "<html>"], a: "<body>" },
+{ q: "Which tag is used to create a large heading?", options: ["<h1-h6>", "<header>", "<h1>", "<heading>"], a: "<h1>" },
+{ q: "Which of the following is an example of an empty tag?", options: ["<p>", "<a>", "<br>", "<body>"], a: "<br>" },
+{ q: "What are the structural components of an HTML page, enclosed in angle brackets (< >), called?", options: ["Elements", "Attributes", "Tags", "Pointers"], a: "Tags" }
 ]
+// Add more quiz data here for all topics in subjectTopics if needed
 };
 
-
-/* ===================== WORKSHEET BANK (5 each) ===================== */
-
+// Placeholder for other banks (unchanged but kept for context and completeness)
+const quizBank = {}; // Original single-line quizBank is replaced by quizBankMCQ
 const wsBank = {
 "Grammar": [
 "1. Write 5 nouns.",
@@ -817,7 +773,6 @@ const wsBank = {
 "4. Form 5 adverbs.",
 "5. Write 3 complex sentences."
 ],
-
 "Formal Letter": [
 "1. Write a letter to principal for leave.",
 "2. Write subject for complaint letter.",
@@ -825,7 +780,6 @@ const wsBank = {
 "4. Write a conclusion line.",
 "5. Write receiver address."
 ],
-
 "Speech": [
 "1. Write opening line for speech.",
 "2. Write 3 body points.",
@@ -833,7 +787,6 @@ const wsBank = {
 "4. Topic: importance of studies.",
 "5. Write rhetorical question."
 ],
-
 "Prose": [
 "1. Define prose.",
 "2. Write a paragraph on school.",
@@ -841,8 +794,6 @@ const wsBank = {
 "4. Write character description.",
 "5. Write moral of story."
 ],
-
-/* Math */
 "Algebra": [
 "1. Simplify: 3x + x.",
 "2. Solve: 2x = 12.",
@@ -850,7 +801,6 @@ const wsBank = {
 "4. Define variable & constant.",
 "5. Write 3 algebraic expressions."
 ],
-
 "Linear Equations": [
 "1. Solve x + 3 = 9.",
 "2. Solve 4x = 16.",
@@ -858,7 +808,6 @@ const wsBank = {
 "4. Write linear equation.",
 "5. Graph a straight line."
 ],
-
 "Mensuration": [
 "1. Find area of square 5 cm.",
 "2. Find area of 6×4 rectangle.",
@@ -866,8 +815,6 @@ const wsBank = {
 "4. Define radius & diameter.",
 "5. Find volume of cube side 3."
 ],
-
-/* Science */
 "Reproduction in Animals": [
 "1. Define fertilisation.",
 "2. Draw male & female gametes.",
@@ -875,7 +822,6 @@ const wsBank = {
 "4. Example of oviparous animal.",
 "5. Define embryo."
 ],
-
 "Sound": [
 "1. Define vibration.",
 "2. Draw wave diagram.",
@@ -883,7 +829,6 @@ const wsBank = {
 "4. Define amplitude.",
 "5. Explain echo."
 ],
-
 "Electricity": [
 "1. Draw simple circuit.",
 "2. Label battery & bulb.",
@@ -891,8 +836,6 @@ const wsBank = {
 "4. Define insulator.",
 "5. What is fuse?"
 ],
-
-/* Social Science */
 "1857 Revolt": [
 "1. Causes of revolt.",
 "2. Leaders of revolt.",
@@ -900,7 +843,6 @@ const wsBank = {
 "4. Effects of revolt.",
 "5. Write short note."
 ],
-
 "Resources": [
 "1. Define resource.",
 "2. Types of resources.",
@@ -908,7 +850,6 @@ const wsBank = {
 "4. Conservation methods.",
 "5. Why resources important?"
 ],
-
 "Judiciary": [
 "1. Structure of courts.",
 "2. Define PIL.",
@@ -916,8 +857,6 @@ const wsBank = {
 "4. Rights protected?",
 "5. Why judiciary independent?"
 ],
-
-/* Hindi */
 "Vyakaran": [
 "1. Sangya ke prakar.",
 "2. Kriya ke 5 udaharan.",
@@ -925,7 +864,6 @@ const wsBank = {
 "4. Vakya banao.",
 "5. Muhavare likhiye."
 ],
-
 "Patra Lekhan": [
 "1. Patra ka format.",
 "2. Patra ke bhaag.",
@@ -933,8 +871,6 @@ const wsBank = {
 "4. Samapan likhiye.",
 "5. Formal patra likhiye."
 ],
-
-/* Computer */
 "HTML": [
 "1. Write HTML structure.",
 "2. Use <h1> <p> tags.",
@@ -942,7 +878,6 @@ const wsBank = {
 "4. Insert image.",
 "5. Create link."
 ],
-
 "AI Basics": [
 "1. Define AI.",
 "2. Uses of AI.",
@@ -950,8 +885,6 @@ const wsBank = {
 "4. Chatbot example.",
 "5. AI ke benefits."
 ],
-
-/* Sanskrit */
 "Shabd Roop": [
 "1. Ram shabd roop.",
 "2. Hari shabd roop.",
@@ -959,7 +892,6 @@ const wsBank = {
 "4. Striling examples.",
 "5. Vakya banao."
 ],
-
 "Dhatu Roop": [
 "1. Path dhatu roop.",
 "2. Lakar likhiye.",
@@ -967,8 +899,6 @@ const wsBank = {
 "4. Translation.",
 "5. Kriya likhiye."
 ],
-
-/* French */
 "French Grammar": [
 "1. Write 5 French nouns.",
 "2. Conjugate être.",
@@ -976,7 +906,6 @@ const wsBank = {
 "4. Write 5 adjectives.",
 "5. Translate sentences."
 ],
-
 "Culture": [
 "1. Write about France.",
 "2. French food.",
@@ -985,7 +914,10 @@ const wsBank = {
 "5. French lifestyle."
 ]
 };
-// mmBank, quizBank, wsBank
+
+/* ===================== AI CHAT DEFAULT ANSWERS ===================== */
+// This bank uses the Mind Map data for default responses when a topic is selected.
+const aiChatBank = mmBank;
 </script>
 
 </body>
