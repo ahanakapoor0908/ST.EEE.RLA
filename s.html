@@ -1,195 +1,991 @@
 <!DOCTYPE html>
-
-DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STERLA Dashboard</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STERLA</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; display: flex; }
-  #sidebar { width: 220px; background: #007bff; color: white; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-  #sidebar h2 { text-align: center; margin-bottom: 20px; }
-  #sidebar button { display: block; width: 100%; margin: 10px 0; padding: 10px; background: white; color: #007bff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-  #sidebar button:hover { background: #e0e0e0; }
-  #main { flex: 1; padding: 20px; box-sizing: border-box; }
-  h1 { color: #007bff; }
-  select, textarea, input { width: 100%; padding: 8px; margin: 10px 0; box-sizing: border-box; }
-  #output { margin-top: 20px; white-space: pre-wrap; background: #fff; padding: 15px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
-  iframe { width: 100%; height: 500px; border: none; border-radius: 5px; }
+/* ====== GLOBAL THEME ====== */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: "Poppins", sans-serif;
+}
+body{
+  background:linear-gradient(135deg,#d9e6ff,#ffffff);
+  overflow-x:hidden;
+  font-size:16px;
+}
+
+/* ====== LOGIN PAGE ====== */
+#loginPage{
+  width:100vw; height:100vh;
+  display:flex; justify-content:center; align-items:center;
+  padding:30px;
+}
+.login-container{
+  width:80%; height:80%;
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(15px);
+  border-radius:25px;
+  display:flex;
+  box-shadow:0 8px 20px rgba(0,0,0,0.15);
+}
+.login-left{
+  flex:1; background:#e8f0ff;
+  border-radius:25px 0 0 25px;
+  padding:40px;
+  display:flex; flex-direction:column;
+  justify-content:center; align-items:center;
+  position:relative; overflow:hidden;
+}
+.doodle{
+  position:absolute; opacity:0.15; width:140px;
+}
+#pencil{top:20px; left:30px; transform:rotate(-15deg);}
+#book{bottom:30px; right:40px; transform:rotate(10deg);}
+#star{top:40%; left:45%;}
+.logo-title{
+  font-size:48px; font-weight:800;
+  color:#2b4b9b; text-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+.logo-sub{
+  font-size:20px; color:#5370c9;
+  margin-top:10px; text-align:center;
+}
+.login-right{
+  flex:1; padding:50px;
+  display:flex; flex-direction:column;
+  justify-content:center;
+}
+.login-right h2{
+  font-size:32px; font-weight:700;
+  color:#2b4b9b; margin-bottom:20px;
+}
+.inputBox{
+  margin:15px 0;
+}
+.inputBox input, .inputBox select{
+  width:100%; padding:15px;
+  border-radius:12px; border:1px solid #9bb2ff;
+  background:rgba(255,255,255,0.6);
+}
+#loginBtn{
+  margin-top:20px; width:100%; padding:16px;
+  border:none; border-radius:12px;
+  font-size:18px; background:#2b4b9b;
+  color:white; cursor:pointer; transition:0.3s;
+}
+#loginBtn:hover{ background:#1d3270; }
+
+/* ====== APP LAYOUT ====== */
+#appPage{ display:none; width:100%; height:100%; display:flex; }
+.glass{
+  background:rgba(255,255,255,0.35);
+  backdrop-filter:blur(12px);
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,0.4);
+  box-shadow:0 4px 20px rgba(0,0,0,0.1);
+}
+#sidebar{
+  width:260px; height:100vh;
+  background:#1346b5c4; color:white;
+  padding:25px; position:fixed;
+}
+#sidebar h2{
+  font-size:26px; margin-bottom:25px;
+}
+.nav-btn{
+  width:100%; padding:12px; margin:8px 0;
+  background:rgba(255,255,255,0.2); border:none;
+  border-radius:12px; text-align:left;
+  color:white; cursor:pointer; font-size:16px;
+  transition:0.3s;
+}
+.nav-btn:hover{ background:rgba(255,255,255,0.35); }
+#main{
+  margin-left:280px; padding:30px;
+  width:calc(100% - 280px);
+}
+.page{ display:none; }
+.active{ display:block; }
+#welcomeBox{
+  width:90%; padding:30px;
+  margin-top:25px;
+  display:flex; align-items:center;
+  justify-content:space-between;
+}
+#welcomeBox img{
+  width:160px; filter: invert(25%);
+}
+.subject-card{
+  padding:18px; margin:12px; background:white;
+  border-radius:15px; display:inline-block;
+  cursor:pointer; width:150px; text-align:center;
+  border:2px solid #1346b5; transition:0.3s;
+}
+.subject-card:hover{
+  background:#1346b5; color:white;
+}
+.topic-btn{
+  padding:12px; border-radius:12px;
+  background:#1346b5; color:white; border:none;
+  margin:5px; cursor:pointer;
+}
+.output-box{
+  margin-top:20px; padding:25px;
+  border-radius:15px; background:white;
+  min-height:200px;
+}
+.announce{
+  background:white; padding:12px;
+  border-radius:12px; margin:10px 0;
+}
+
+/* Hidden for teacher-only features: base hidden then shown via JS */
+.teacher-only { display: none; }
 </style>
 </head>
 <body>
 
-<div id="sidebar">
-  <h2>STERLA</h2>
-  <button onclick="showHome()">Home</button>
-  <button onclick="showMindmap()">Mindmaps</button>
-  <button onclick="showWorksheet()">Worksheets</button>
-  <button onclick="showQuiz()">Quizzes</button>
-  <button onclick="showChatbot()">Chatbot</button>
-</div>
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-container">
+    <div class="login-left">
+      <img src="https://cdn-icons-png.flaticon.com/512/2942/2942789.png" class="doodle" id="pencil">
+      <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" class="doodle" id="book">
+      <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" class="doodle" id="star">
+      <div class="logo-title">STERLA</div>
+      <div class="logo-sub">Your All-in-One Smart School Companion</div>
+    </div>
 
-<div id="main">
-  <div id="home">
-    <h1>Welcome to STERLA</h1>
-    <p>Your AI-powered student-teacher platform. Explore mindmaps, worksheets, quizzes, and interact with the chatbot.</p>
-  </div>
-
-  <div id="mindmap" style="display:none;">
-    <h1>Mindmaps</h1>
-    <select id="subjectMM"></select>
-    <button onclick="generateMindmap()">Show Mindmap</button>
-    <div id="outputMM"></div>
-  </div>
-
-  <div id="worksheet" style="display:none;">
-    <h1>Worksheets</h1>
-    <select id="subjectWS"></select>
-    <button onclick="generateWorksheet()">Generate Worksheet</button>
-    <div id="outputWS"></div>
-  </div>
-
-  <div id="quiz" style="display:none;">
-    <h1>Quizzes</h1>
-    <select id="subjectQuiz"></select>
-    <button onclick="generateQuiz()">Generate Quiz</button>
-    <div id="outputQuiz"></div>
-  </div>
-
-  <div id="chatbot" style="display:none;">
-    <h1>SchoolAI Chatbot</h1>
-    <iframe src="https://student.schoolai.com/dot/spaces/join?code=AWSM-78K8"></iframe>
+    <div class="login-right">
+      <h2>Login</h2>
+      <div class="inputBox"><input type="text" id="username" placeholder="Enter your name" /></div>
+      <div class="inputBox">
+        <button id="studentLogin">Login as Student</button>
+        <button id="teacherLogin">Login as Teacher</button>
+      </div>
+    </div>
   </div>
 </div>
 
-/* ===== TOPICS & DATA ===== */
+<!-- APP PAGE -->
+<div id="appPage">
+  <div id="sidebar">
+    <h2>STERLA</h2>
+    <button class="nav-btn" onclick="showPage('homePage')">🏠 Home</button>
+    <button class="nav-btn" onclick="showPage('dashboard')">📢 Dashboard</button>
+    <button class="nav-btn" onclick="showPage('subjectsPage')">📘 Subjects</button>
+    <button class="nav-btn" onclick="showPage('mmPage')">🧠 Mind Map</button>
+    <button class="nav-btn" onclick="showPage('quizPage')">📝 Quiz</button>
+    <button class="nav-btn" onclick="showPage('wsPage')">📄 Worksheet</button>
+    <button class="nav-btn teacher-only" onclick="showPage('managePage')">⚙️ Teacher Panel</button>
+    <button class="nav-btn" onclick="showPage('aiChatPage')">🤖 AI Chat</button>
+  </div>
 
-/* ===================== MINDMAP, QUIZ, WORKSHEET DATA ===================== */
-const mmBank = {
-  "Grammar":["Grammar is the structure and system of a language.","Includes parts of speech: nouns, pronouns, verbs, adjectives, adverbs.","Sentence structure: subject, predicate, clauses.","Tenses show the time of action.","Punctuation ensures clarity in writing."],
-  "Formal Letter":["Written for official purposes.","Format: Sender’s address → Date → Receiver’s address → Subject → Salutation.","Body has 3 paragraphs: introduction, details, conclusion.","Formal tone, no slang.","Ends with 'Yours sincerely' + name."],
-  "Speech":["A spoken expression delivered to an audience.","Structure: introduction, body points, conclusion.","Use clear language and strong opening.","Maintain eye contact & voice modulation.","Ends with a memorable closing statement."],
-  "Prose":["Written in ordinary grammatical structure.","Contains paragraphs instead of verses.","Includes narratives, essays, stories.","Focuses on characters, storyline, message.","Uses natural speech flow."],
-  "Algebra":["Study of mathematical symbols and rules.","Includes expressions, equations, and formulas.","Solve for unknowns using equations.","Understand linear and quadratic equations.","Apply formulas for problem solving."],
-  "Linear Equations":["Equation where highest power of variable is 1.","Graph forms a straight line.","Can have one or more variables.","Used to solve real-life problems.","Can be solved by substitution, elimination, or graphing."],
-  "Mensuration":["Measurement of geometric shapes.","Includes area, perimeter, and volume.","Formulas vary for different shapes.","Units must be consistent.","Used in construction, architecture, and daily life."],
-  "Reproduction in Animals":["Two types: sexual and asexual.","Sexual involves gametes, asexual does not.","Examples: binary fission, budding, flowering plants.","Human reproduction involves male & female systems.","Fertilization and development explained."],
-  "Sound":["Vibration that travels through a medium.","Characteristics: pitch, amplitude, frequency.","Speed depends on medium.","Reflection: echo, refraction, absorption.","Used in music, communication, and technology."],
-  "Electricity":["Flow of electric charge.","Ohm’s law: V = IR","Circuits: series and parallel.","Safety devices: fuses, MCBs.","Heating effects: bulb, heater, fuse."],
-  "1857 Revolt":["First major uprising against British.","Causes: political, economic, social, religious.","United soldiers, peasants, and rulers.","Key leaders: Mangal Pandey, Rani Lakshmi Bai, Nana Saheb.","Marked the start of Indian independence struggle."],
-  "Resources":["Natural resources: water, soil, minerals, forests.","Classification: renewable, non-renewable.","Importance for economy and daily life.","Conservation methods are essential.","Sustainable usage protects future generations."],
-  "Judiciary":["System of courts to enforce law.","Supreme Court: highest authority.","High Courts and lower courts handle regional cases.","Judges ensure justice and constitutionality.","Independent judiciary protects rights."],
-  "Vyakaran":["Grammar rules in Hindi.","Includes sandhi, samas, ling, vachya.","Tenses, vachan, purush explained.","Correct usage improves writing and speech.","Essential for exams and communication."],
-  "Patra Lekhan":["Formal/informal letters in Hindi.","Format: sender, date, receiver, subject, salutation.","Content structured clearly.","Polite and precise language used.","Closing includes name/signature."],
-  "HTML":["Hypertext Markup Language used for webpages.","Tags define structure: headings, paragraphs, links, images.","Elements have attributes.","Forms collect user data.","Building blocks of websites."],
-  "AI Basics":["Artificial Intelligence: machines simulating intelligence.","Types: Narrow AI, General AI.","Applications: chatbots, recognition, self-driving.","Training involves data and algorithms.","Used across industries for automation."],
-  "Shabd Roop":["Different forms of a word in Sanskrit.","Used to change gender, number, or case.","Helps in sentence formation.","Includes singular, dual, plural forms.","Essential for correct grammar."],
-  "Dhatu Roop":["Verb root forms in Sanskrit.","Different tenses and moods derived from root.","Used in proper sentence construction.","Important for reading and writing Sanskrit.","Enhances understanding of classical texts."],
-  "French Grammar":["Articles, nouns, adjectives, verbs.","Tenses: present, past, future.","Sentence structure: subject-verb-object.","Politeness phrases and expressions.","Used in speaking and writing French."],
-  "Culture":["French culture, traditions, festivals.","Food, music, and lifestyle.","Famous French writers and artists.","Understanding etiquette and social norms.","Helps in communication and immersion."]
+  <div id="main">
+
+    <!-- HOME -->
+    <div id="homePage" class="page active">
+      <h1 id="welcomeUser"></h1>
+      <div id="welcomeBox" class="glass">
+        <div>
+          <h2>Your learning companion</h2>
+          <p>Choose a subject → pick a topic → get mindmap / quiz / worksheet!</p>
+        </div>
+        <img src="https://cdn-icons-png.flaticon.com/512/2942/2942943.png" alt="school icon">
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="page">
+      <h1>Dashboard</h1>
+      <h2>Announcements</h2>
+      <div class="announce">• Chemistry worksheet due Monday</div>
+      <div class="announce">• Biology test next Friday</div>
+      <div class="announce">• Math homework submission closes tonight</div>
+    </div>
+
+    <!-- SUBJECTS -->
+    <div id="subjectsPage" class="page">
+      <h1>Select a Subject</h1>
+      <div id="subjectsContainer"></div>
+    </div>
+
+    <!-- TOPICS -->
+    <div id="topicPage" class="page">
+      <h1 id="topicTitle"></h1>
+      <div id="topicButtons"></div>
+    </div>
+
+    <!-- MINDMAP -->
+    <div id="mmPage" class="page">
+      <h1>Mind Map</h1>
+      <div class="output-box" id="mmOutput"></div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quizPage" class="page">
+      <h1>Quiz</h1>
+      <div class="output-box" id="quizOutput"></div>
+    </div>
+
+    <!-- WORKSHEET -->
+    <div id="wsPage" class="page">
+      <h1>Worksheet</h1>
+      <div class="output-box" id="wsOutput"></div>
+    </div>
+
+    <!-- TEACHER PANEL -->
+    <div id="managePage" class="page teacher-only">
+      <h1>Teacher Panel</h1>
+      <p>Here you can upload worksheets, add quizzes, view submissions, manage announcements.</p>
+    </div>
+
+    <!-- AI CHAT -->
+    <div id="aiChatPage" class="page">
+      <h1>AI Chat Assistant</h1>
+      <iframe src="https://app.schoolai.com/share/space/clnaw1t7u000ayvpt3po1373j"
+        style="width:100%; height:600px; border:none; border-radius:12px;"></iframe>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ================= LOGIN HANDLING ================= */
+const studentLoginBtn = document.getElementById("studentLogin");
+const teacherLoginBtn = document.getElementById("teacherLogin");
+
+studentLoginBtn.onclick = () => doLogin("student");
+teacherLoginBtn.onclick = () => doLogin("teacher");
+
+function doLogin(role){
+  const name = prompt("Enter your name:");
+  if(!name){ alert("Name is required"); return; }
+  localStorage.setItem("sterlaUser", name);
+  localStorage.setItem("sterlaRole", role);
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("appPage").style.display = "flex";
+  document.getElementById("welcomeUser").innerText = "Welcome, " + name + " 👋";
+
+  if(role === "teacher"){
+    document.querySelectorAll(".teacher-only").forEach(el => el.style.display = "block");
+  }
+}
+
+/* ================= CONTENT DATA ================= */
+const subjectTopics = {
+  "English": ["Grammar", "Formal Letter", "Speech", "Prose"],
+  "Math": ["Algebra", "Linear Equations", "Mensuration"],
+  "Science": ["Reproduction in Animals", "Sound", "Electricity"],
+  "Social Science": ["1857 Revolt", "Resources", "Judiciary"],
+  "Hindi": ["Vyakaran", "Patra Lekhan"],
+  "Computer": ["HTML", "AI Basics"],
+  "Sanskrit": ["Shabd Roop", "Dhatu Roop"],
+  "French": ["French Grammar", "Culture"]
 };
+
+let chosenTopic = "";
+
+/* ===================== UI NAVIGATION ===================== */
+function showPage(p){
+  document.querySelectorAll(".page").forEach(pg => pg.classList.remove("active"));
+  document.getElementById(p).classList.add("active");
+  if(p === "mmPage") loadMindmap();
+  if(p === "quizPage") loadQuiz();
+  if(p === "wsPage") loadWorksheet();
+}
+
+/* ===================== LOAD SUBJECTS ===================== */
+function loadSubjects(){
+  const box = document.getElementById("subjectsContainer");
+  box.innerHTML = "";
+  for(const sub in subjectTopics){
+    box.innerHTML += `<div class="subject-card" onclick="selectSubject('${sub}')">${sub}</div>`;
+  }
+}
+loadSubjects();
+
+function selectSubject(sub){
+  showPage("topicPage");
+  document.getElementById("topicTitle").innerText = sub + " Topics";
+  const topics = subjectTopics[sub];
+  let btns = "";
+  topics.forEach(tp => {
+    btns += `<button class="topic-btn" onclick="setTopic('${tp}')">${tp}</button>`;
+  });
+  document.getElementById("topicButtons").innerHTML = btns;
+}
+
+function setTopic(tp){
+  chosenTopic = tp;
+  alert("Topic selected: " + tp);
+}
+
+/* ===================== LOAD MINDMAP ===================== */
+function loadMindmap(){
+  const out = document.getElementById("mmOutput");
+  if(!chosenTopic){ out.innerHTML = "Select a topic first!"; return; }
+  const mmData = mmBank[chosenTopic];
+  if(!mmData){ out.innerHTML = "Mindmap not available."; return; }
+  let html = `<h3>${chosenTopic}</h3><ul>`;
+  mmData.forEach(item => html += `<li>${item}</li>`);
+  html += "</ul>";
+  out.innerHTML = html;
+}
+
+/* ===================== LOAD QUIZ ===================== */
+function loadQuiz(){
+  const out = document.getElementById("quizOutput");
+  const q = quizBank[chosenTopic];
+  if(!q){ out.innerHTML = "Quiz not available for this topic."; return; }
+  out.innerHTML = q.map(s => `<p>${s}</p>`).join("");
+}
+
+/* ===================== LOAD WORKSHEET ===================== */
+function loadWorksheet(){
+  const out = document.getElementById("wsOutput");
+  const w = wsBank[chosenTopic];
+  if(!w){ out.innerHTML = "Worksheet not available for this topic."; return; }
+  out.innerHTML = w.map(s => `<p>${s}</p>`).join("");
+}
+</script>
+
+<script>
+/* ===================== MINDMAP DATA ===================== */
+
+const mmBank = {
+"Grammar": [
+  "Grammar is the structure and system of a language.",
+  "Includes parts of speech: nouns, pronouns, verbs, adjectives, adverbs.",
+  "Sentence structure: subject, predicate, clauses.",
+  "Tenses show the time of action.",
+  "Punctuation ensures clarity in writing."
+],
+"Formal Letter": [
+  "Written for official purposes.",
+  "Format: Sender’s address → Date → Receiver’s address → Subject → Salutation.",
+  "Body has 3 paragraphs: introduction, details, conclusion.",
+  "Formal tone, no slang.",
+  "Ends with 'Yours sincerely' + name."
+],
+"Speech": [
+  "A spoken expression delivered to an audience.",
+  "Structure: introduction, body points, conclusion.",
+  "Use clear language and strong opening.",
+  "Maintain eye contact & voice modulation.",
+  "Ends with a memorable closing statement."
+],
+"Prose": [
+  "Written in ordinary grammatical structure.",
+  "Contains paragraphs instead of verses.",
+  "Includes narratives, essays, stories.",
+  "Focuses on characters, storyline, message.",
+  "Uses natural speech flow."
+],
+
+/* Math */
+"Algebra": [
+  "Deals with letters & symbols representing numbers.",
+  "Expressions: combination of variables, constants, operators.",
+  "Equations: expressions with equality sign.",
+  "Solve by isolating variable.",
+  "Used in real-life calculations."
+],
+"Linear Equations": [
+  "Equation of form ax + b = 0.",
+  "Solution found by balancing both sides.",
+  "Graph is a straight line.",
+  "Variables usually of degree 1.",
+  "Used in cost calculations & daily math."
+],
+"Mensuration": [
+  "Study of areas & volumes.",
+  "2D shapes: square, rectangle, triangle, circle.",
+  "3D shapes: cube, cuboid, cylinder, cone.",
+  "Formulas for perimeter & area.",
+  "Used in construction & measurements."
+],
+
+/* Science */
+"Reproduction in Animals": [
+  "Process by which living organisms produce offspring.",
+  "Types: sexual & asexual reproduction.",
+  "Fertilisation: fusion of male & female gametes.",
+  "Viviparous = give birth; Oviparous = lay eggs.",
+  "Zygote develops into embryo."
+],
+"Sound": [
+  "Sound is produced by vibrations.",
+  "Travels in form of waves.",
+  "Requires a medium (solid, liquid, gas).",
+  "Frequency determines pitch.",
+  "Amplitude determines loudness."
+],
+"Electricity": [
+  "Flow of electric current through circuits.",
+  "Conductors allow flow; Insulators resist flow.",
+  "A battery provides potential difference.",
+  "Switch opens/closes circuit.",
+  "Electric fuse protects appliances."
+],
+
+/* Social Science */
+"1857 Revolt": [
+  "First major rebellion against British rule.",
+  "Causes: political, economic, military & cultural.",
+  "Leaders: Rani Lakshmibai, Mangal Pandey, Bahadur Shah Zafar.",
+  "Widespread anger united Indians.",
+  "Resulted in end of Company rule."
+],
+"Resources": [
+  "Anything useful to humans.",
+  "Types: natural, human-made, human resources.",
+  "Renewable vs Non-renewable.",
+  "Conservation is essential.",
+  "Sustainable use ensures future security."
+],
+"Judiciary": [
+  "Interprets laws & ensures justice.",
+  "Structure: Supreme Court → High Courts → District Courts.",
+  "Independent of Legislature & Executive.",
+  "Protects fundamental rights.",
+  "Provides dispute resolution."
+],
+
+/* Hindi */
+"Vyakaran": [
+  "Hindi grammar rules.",
+  "Includes Sangya, Sarvanaam, Kriya, Visheshan.",
+  "Vakya ke bhed & Sandhi.",
+  "Linguistic structure of Hindi.",
+  "Improves clarity & correctness."
+],
+"Patra Lekhan": [
+  "Letter writing format in Hindi.",
+  "Do types: Anaupcharik & Aupcharik.",
+  "Includes address, date, salutation.",
+  "Body is clear & respectful.",
+  "Ends with signature."
+],
+
+/* Computer */
+"HTML": [
+  "HyperText Markup Language.",
+  "Used to design websites.",
+  "Elements: <html>, <body>, <h1>, <p>.",
+  "Tags can be nested.",
+  "Browsers read and display HTML."
+],
+"AI Basics": [
+  "AI = machines mimicking human intelligence.",
+  "Examples: chatbots, prediction systems.",
+  "Machine learning trains models using data.",
+  "Used in games, assistants, cars.",
+  "Future tech advancing rapidly."
+],
+
+/* Sanskrit */
+"Shabd Roop": [
+  "Forms of nouns in Sanskrit.",
+  "Based on gender, vibhakti & vachana.",
+  "Examples: रामः, रामम्, रामेण.",
+  "Memorisation improves translation.",
+  "Used in sentence structure."
+],
+"Dhatu Roop": [
+  "Verb forms in Sanskrit.",
+  "Shows tense, number & person.",
+  "Example: पठति, पठतः, पठन्ति.",
+  "Different lakaras: Lat, Lang, Lot.",
+  "Essential for verb agreement."
+],
+
+/* French */
+"French Grammar": [
+  "Basic rules of French language.",
+  "Articles: le, la, les.",
+  "Verbs: être, avoir.",
+  "Sentence structure = Subject + Verb + Object.",
+  "Nouns have genders."
+],
+"Culture": [
+  "French traditions & lifestyle.",
+  "Popular foods: croissants, baguettes.",
+  "Eiffel Tower symbolises France.",
+  "Rich art & literature history.",
+  "French spoken in 29 countries."
+]
+};
+
+
+/* ===================== QUIZ BANK (10 each) ===================== */
 
 const quizBank = {
-  "Grammar":["1. Which of the following is a noun?","2. Identify the verb in the sentence.","3. What is an adjective?","4. Define adverb.","5. Choose the correct pronoun.","6. What is a clause?","7. What is a phrase?","8. Identify the subject.","9. Identify the predicate.","10. Which sentence is in past tense?"],
-  "Formal Letter":["1. Which salutation is correct for a formal letter?","2. Where does the date appear?","3. How many paragraphs in the body?","4. Correct closing of a formal letter?","5. Should slang be used?","6. What is the subject line?","7. How to address unknown recipient?","8. Where is sender’s address?","9. How to maintain formal tone?","10. Example of formal letter topic?"],
-  "Speech":["1. Opening sentence of speech should be?","2. How to conclude a speech?","3. How many body points needed?","4. Why is voice modulation important?","5. Should slang be used?","6. How to maintain eye contact?","7. Introduction content?","8. Conclusion content?","9. Role of pauses in speech?","10. How to engage audience?"],
-  "Prose":["1. Prose is written in?","2. Does prose contain verses?","3. Main elements of prose?","4. Difference between prose and poetry?","5. Importance of storyline?","6. Character roles?","7. Use of dialogues?","8. Purpose of prose?","9. Types of prose?","10. Example of prose?"],
-  "Algebra":["1. Solve x + 5 = 12","2. Factorize x^2 + 5x + 6","3. Simplify 2x + 3x","4. Solve 2x - 7 = 9","5. What is coefficient of x?","6. Identify constant term","7. Solve 3x + 2 = 11","8. Solve x^2 - 9 = 0","9. Expression for sum of two numbers?","10. Solve x/2 + 5 = 9"],
-  "Linear Equations":["1. Solve 2x + 3 = 7","2. Identify solution of x + y = 5","3. Graph line equation y = 2x + 1","4. Solve 3x - 4y = 12","5. Substitution method explanation","6. Elimination method example","7. Real-life use of linear eq","8. Difference between series & parallel eq?","9. Check solution of linear eq","10. Write linear eq in two variables"],
-  "Mensuration":["1. Area of rectangle formula?","2. Perimeter of square formula?","3. Volume of cube formula?","4. Surface area of cylinder formula?","5. Convert cm to m?","6. Area of triangle?","7. Circumference of circle?","8. Calculate volume of cone?","9. Difference between area and perimeter?","10. Units used in mensuration?"],
-  "Reproduction in Animals":["1. Types of reproduction?","2. Examples of asexual reproduction?","3. Sexual reproduction involves?","4. Male gamete called?","5. Female gamete called?","6. Fertilization occurs where?","7. Example of binary fission?","8. Budding example?","9. Development stages in human?","10. Difference sexual vs asexual?"],
-  "Sound":["1. What is sound?","2. Medium for sound propagation?","3. Speed of sound in air?","4. Echo is?","5. Frequency definition?","6. Pitch definition?","7. Amplitude definition?","8. Uses of sound?","9. Reflection of sound?","10. Absorption of sound?"],
-  "Electricity":["1. Define electric current","2. Ohm’s law formula?","3. Series circuit feature?","4. Parallel circuit feature?","5. Heating effect example?","6. Function of fuse?","7. Function of MCB?","8. Identify conductor?","9. Identify insulator?","10. Safety rules?"],
-  "1857 Revolt":["1. Year of revolt?","2. Key leader: Mangal Pandey?","3. Rani Lakshmi Bai role?","4. Nana Saheb role?","5. Causes of revolt?","6. Social cause example?","7. Political cause example?","8. Economic cause example?","9. Outcome of revolt?","10. Lessons learned?"],
-  "Resources":["1. Types of natural resources?","2. Renewable examples?","3. Non-renewable examples?","4. Importance of resources?","5. Conservation methods?","6. Effect of overuse?","7. Water conservation example?","8. Forest conservation example?","9. Sustainable use meaning?","10. Future generations importance?"],
-  "Judiciary":["1. Supreme Court role?","2. High Court role?","3. Lower court role?","4. Independent judiciary importance?","5. Judge role?","6. Protects rights how?","7. Constitution relation?","8. Civil vs criminal court?","9. Example of court decision?","10. Appeal meaning?"],
-  "Vyakaran":["1. Define Sandhi?","2. Define Samas?","3. Types of ling?","4. Vachan explained?","5. Purush explained?","6. Correct sentence formation?","7. Past tense example?","8. Future tense example?","9. Correct pronoun usage?","10. Correct adjective usage?"],
-  "Patra Lekhan":["1. Formal letter format?","2. Informal letter format?","3. Sender address position?","4. Receiver address position?","5. Subject line importance?","6. Correct salutation?","7. Body paragraph number?","8. Closing format?","9. Should language be polite?","10. Example topic?"],
-  "HTML":["1. Full form of HTML?","2. Tags vs elements?","3. Heading tag?","4. Paragraph tag?","5. Anchor tag?","6. Image tag?","7. Input tag?","8. Form tag?","9. Attributes examples?","10. HTML page structure?"],
-  "AI Basics":["1. Define AI?","2. Types of AI?","3. Narrow AI example?","4. General AI example?","5. Machine learning definition?","6. Deep learning meaning?","7. AI in healthcare?","8. AI in education?","9. AI in transport?","10. Benefits of AI?"],
-  "Shabd Roop":["1. What is shabd roop?","2. Singular example?","3. Dual example?","4. Plural example?","5. Gender change example?","6. Sentence usage?","7. Correct case usage?","8. Form for verbs?","9. Form for nouns?","10. Importance?"],
-  "Dhatu Roop":["1. Root verb example?","2. Present tense form?","3. Past tense form?","4. Future tense form?","5. Mood example?","6. Sentence usage?","7. Sanskrit literature usage?","8. Different conjugations?","9. Singular vs plural usage?","10. Importance?"],
-  "French Grammar":["1. French articles?","2. French nouns?","3. French adjectives?","4. Present tense verbs?","5. Past tense verbs?","6. Future tense verbs?","7. Sentence structure?","8. Polite phrases?","9. Culture vocabulary?","10. Example sentence?"],
-  "Culture":["1. French festivals?","2. French food?","3. French music?","4. Famous writers?","5. Famous artists?","6. Social norms?","7. Etiquette example?","8. Daily life culture?","9. Historical sites?","10. French lifestyle?"]
+"Grammar": [
+"1. Which of the following is a noun?",
+"2. Identify the verb in the sentence.",
+"3. What is an adjective?",
+"4. Define adverb.",
+"5. Choose the correct pronoun.",
+"6. What is a clause?",
+"7. What is a phrase?",
+"8. Identify the subject.",
+"9. Identify the predicate.",
+"10. Which sentence is in past tense?"
+],
+
+"Formal Letter": [
+"1. What comes first: sender or receiver address?",
+"2. What is written in the subject line?",
+"3. What tone must a formal letter have?",
+"4. What comes after salutation?",
+"5. How many paragraphs in body?",
+"6. What is the closing phrase?",
+"7. Should slang be used?",
+"8. Where does date go?",
+"9. What is letter of complaint?",
+"10. What is letter of enquiry?"
+],
+
+"Speech": [
+"1. What is a speech?",
+"2. What is the first part of a speech?",
+"3. Why eye contact is important?",
+"4. What are main points called?",
+"5. What is the conclusion?",
+"6. Should speech be formal?",
+"7. What is tone modulation?",
+"8. What is opening hook?",
+"9. Should speech be memorised?",
+"10. What is rhetorical question?"
+],
+
+"Prose": [
+"1. What is prose?",
+"2. Does prose use rhythm?",
+"3. What is a paragraph?",
+"4. What is narrative prose?",
+"5. What are characters?",
+"6. What is theme?",
+"7. What is setting?",
+"8. What is tone?",
+"9. What is conflict?",
+"10. What is moral?"
+],
+
+/* Math 10 each... */
+"Algebra": [
+"1. What is a variable?",
+"2. What is a constant?",
+"3. Simplify: 2x + 3x",
+"4. Solve: x + 5 = 11",
+"5. Expand: (x + 2)(x + 3)",
+"6. What is an expression?",
+"7. What is an equation?",
+"8. What is coefficient?",
+"9. Solve: 3x = 21",
+"10. Simplify: x² × x³"
+],
+
+"Linear Equations": [
+"1. Define linear equation.",
+"2. Solve: x + 7 = 11",
+"3. Solve: 2x = 14",
+"4. What degree is a linear equation?",
+"5. What graph shape?",
+"6. Solve: 3x + 5 = 20",
+"7. What is variable?",
+"8. What does balancing mean?",
+"9. Solve: x/2 = 6",
+"10. Solve: 5x – 10 = 0"
+],
+
+"Mensuration": [
+"1. Formula for area of square?",
+"2. Area of rectangle?",
+"3. Perimeter?",
+"4. Volume of cube?",
+"5. Area of triangle?",
+"6. Area of circle?",
+"7. What is radius?",
+"8. What is diameter?",
+"9. Volume of cylinder?",
+"10. Perimeter of circle?"
+],
+
+/* Science */
+"Reproduction in Animals": [
+"1. What is sexual reproduction?",
+"2. What is asexual reproduction?",
+"3. What is fertilisation?",
+"4. What is zygote?",
+"5. What are gametes?",
+"6. Oviparous meaning?",
+"7. Viviparous meaning?",
+"8. Example of asexual reproduction.",
+"9. Internal fertilisation occurs where?",
+"10. What is budding?"
+],
+
+"Sound": [
+"1. What produces sound?",
+"2. What is vibration?",
+"3. Medium required?",
+"4. Frequency measures?",
+"5. Amplitude measures?",
+"6. High frequency = ? pitch",
+"7. Soft sound = ? amplitude",
+"8. Unit of frequency?",
+"9. Sound travels fastest in?",
+"10. What is echo?"
+],
+
+"Electricity": [
+"1. What is electric current?",
+"2. What is circuit?",
+"3. What is conductor?",
+"4. What is insulator?",
+"5. What is fuse?",
+"6. Why switch used?",
+"7. What is battery?",
+"8. Symbol of cell?",
+"9. What flows in wires?",
+"10. What is filament?"
+],
+
+/* Social Science */
+"1857 Revolt": [
+"1. What year revolt happened?",
+"2. Who started the revolt?",
+"3. Who led in Jhansi?",
+"4. Who was last Mughal ruler?",
+"5. What was main cause?",
+"6. What type of revolt?",
+"7. Cartridge rumour linked to?",
+"8. What ended after revolt?",
+"9. What started after?",
+"10. Who joined revolt?"
+],
+
+"Resources": [
+"1. What is resource?",
+"2. Types of resources?",
+"3. Renewable meaning?",
+"4. Non-renewable example?",
+"5. Conservation meaning?",
+"6. Sustainable development?",
+"7. Human-made resource?",
+"8. Natural resource?",
+"9. Human resource?",
+"10. Why resources limited?"
+],
+
+"Judiciary": [
+"1. Highest court of India?",
+"2. Middle level court?",
+"3. Role of judiciary?",
+"4. Fundamental rights protected?",
+"5. Who interprets law?",
+"6. What is PIL?",
+"7. What is dispute resolution?",
+"8. What is independent judiciary?",
+"9. Who appoints judges?",
+"10. What is High Court?"
+],
+
+/* Hindi */
+"Vyakaran": [
+"1. Sangya kya hoti hai?",
+"2. Sarvanaam kya hota hai?",
+"3. Kriya kisay kehte hain?",
+"4. Visheshan kya hota hai?",
+"5. Vakya ke bhed?",
+"6. Ling ke prakar?",
+"7. Vachan kya hota hai?",
+"8. Kaal ke prakar?",
+"9. Upsarg kya hai?",
+"10. Pratyay kya hai?"
+],
+
+"Patra Lekhan": [
+"1. Patra ke prakar?",
+"2. Aupcharik patra ka format?",
+"3. Patra mein tareekh kaha hoti hai?",
+"4. Vishay kya hota hai?",
+"5. Sharir ke kitne bhaag?",
+"6. Samapan kis se hota hai?",
+"7. Sambodhan kya hai?",
+"8. Pata kis tarah likhte hain?",
+"9. Abhivadan kya hota hai?",
+"10. Vyakaran ki suddhata kyun zaruri?"
+],
+
+/* Computer */
+"HTML": [
+"1. HTML full form?",
+"2. Tag kya hai?",
+"3. <h1> tag ka use?",
+"4. <p> tag ka use?",
+"5. Hyperlink tag?",
+"6. Image tag?",
+"7. Attribute kya hai?",
+"8. List tags?",
+"9. Table ka tag?",
+"10. HTML file extension?"
+],
+
+"AI Basics": [
+"1. AI full form?",
+"2. Machine learning kya hai?",
+"3. AI ka ek example?",
+"4. Chatbot kya hai?",
+"5. Data kya hota hai?",
+"6. Algorithm kya hai?",
+"7. Robotics kya hai?",
+"8. Automation kya hai?",
+"9. Smart assistants example?",
+"10. AI ka future impact?"
+],
+
+/* Sanskrit */
+"Shabd Roop": [
+"1. Shabd roop kya hai?",
+"2. Ram shabd ka pratham vibhakti?",
+"3. Hari shabd kis ling ka hai?",
+"4. Vibhakti kitni hoti hain?",
+"5. Ram shabd ka dwitiya vibhakti?",
+"6. Pulling kya hai?",
+"7. Striling kya hai?",
+"8. Napunsak ling kya hai?",
+"9. Ekvachan kya hai?",
+"10. Bahuvachan kya hai?"
+],
+
+"Dhatu Roop": [
+"1. Dhatu kya hai?",
+"2. Lakar kitne hote hain?",
+"3. Path dhatu ka lat lakar?",
+"4. Kriyapad kya hai?",
+"5. Dhatu roop kyun padte hain?",
+"6. Karm kya hai?",
+"7. Karak kya hota hai?",
+"8. Purush kitne?",
+"9. Vakya mein kriya?",
+"10. Dhatu + pratya = ?"
+],
+
+/* French */
+"French Grammar": [
+"1. Article ‘le’ used for?",
+"2. Verb ‘être’ means?",
+"3. Verb ‘avoir’ means?",
+"4. French has how many genders?",
+"5. Plural article?",
+"6. Bonjour means?",
+"7. Merci means?",
+"8. Noun meaning?",
+"9. Adjective meaning?",
+"10. Sentence pattern?"
+],
+
+"Culture": [
+"1. Capital of France?",
+"2. French famous tower?",
+"3. Popular French bread?",
+"4. French national day?",
+"5. French eating style?",
+"6. Major French museum?",
+"7. Popular French art form?",
+"8. French greeting?",
+"9. Famous French dessert?",
+"10. Language spoken where?"
+]
 };
+
+
+/* ===================== WORKSHEET BANK (5 each) ===================== */
 
 const wsBank = {
-  "Grammar":["1. Write 5 nouns.","2. Write 5 verbs.","3. Identify parts of speech in sentence.","4. Form 5 adverbs.","5. Write 3 complex sentences."],
-  "Formal Letter":["1. Write a formal letter to principal requesting leave.","2. Draft letter to bank manager.","3. Compose letter to editor.","4. Draft letter for complaint.","5. Write letter to teacher."],
-  "Speech":["1. Write a 2-minute speech on pollution.","2. Speech on importance of education.","3. Speech on health and hygiene.","4. Speech on computer usage.","5. Speech on your favorite hobby."],
-  "Prose":["1. Read passage and answer questions.","2. Summarize given paragraph.","3. Identify main idea in paragraph.","4. Write continuation of story.","5. Identify characters in story."],
-  "Algebra":["1. Solve 5x + 3 = 18","2. Factor x^2 + 7x + 12","3. Simplify 4x + 9x","4. Solve 3x - 8 = 10","5. Form expression for sum of 2 numbers."],
-  "Linear Equations":["1. Solve 2x + 5 = 15","2. Solve 3x - y = 6","3. Draw line for y = x + 2","4. Solve 4x + 3y = 12","5. Apply elimination method."],
-  "Mensuration":["1. Find area of rectangle 5x7cm","2. Find perimeter of square 6cm","3. Volume of cube 4cm","4. Surface area of cylinder r=3,h=7","5. Circumference of circle r=5cm."],
-  "Reproduction in Animals":["1. Draw diagram of human reproductive system","2. Explain fertilization","3. Define binary fission","4. Define budding","5. List types of reproduction."],
-  "Sound":["1. Draw wave diagram","2. Define frequency","3. Define amplitude","4. Explain echo","5. Speed of sound in water."],
-  "Electricity":["1. Draw simple circuit","2. Ohm’s law calculation","3. Identify series circuit","4. Identify parallel circuit","5. Name safety devices."],
-  "1857 Revolt":["1. List causes of revolt","2. Name key leaders","3. Write main events","4. Outcome of revolt","5. Lessons learned."],
-  "Resources":["1. List renewable resources","2. List non-renewable resources","3. Explain conservation methods","4. Importance of water conservation","5. Forest conservation examples."],
-  "Judiciary":["1. Write role of Supreme Court","2. High Court duties","3. Lower court examples","4. Judge responsibilities","5. Importance of independent judiciary."],
-  "Vyakaran":["1. Examples of Sandhi","2. Examples of Samas","3. Correct usage of gender","4. Singular/dual/plural examples","5. Correct tense sentences."],
-  "Patra Lekhan":["1. Write formal letter to principal","2. Write informal letter to friend","3. Include sender and receiver details","4. Use proper salutation","5. End with signature."],
-  "HTML":["1. Create simple HTML page","2. Add headings & paragraphs","3. Insert image","4. Add hyperlink","5. Create list items."],
-  "AI Basics":["1. List types of AI","2. Example of narrow AI","3. Example of general AI","4. Write AI application in healthcare","5. AI in education example."],
-  "Shabd Roop":["1. Write singular/plural forms","2. Change gender of words","3. Correct case in sentences","4. Form words for verbs","5. Use in simple sentences."],
-  "Dhatu Roop":["1. Write root verb forms","2. Present tense of verb","3. Past tense of verb","4. Future tense of verb","5. Make simple sentences using verb."],
-  "French Grammar":["1. Write 5 nouns","2. Write 5 adjectives","3. Conjugate 3 verbs","4. Form simple sentences","5. Translate English sentences."],
-  "Culture":["1. List French festivals","2. Describe French food","3. Famous French musicians","4. Write about social etiquette","5. Daily life in France."]
+"Grammar": [
+"1. Write 5 nouns.",
+"2. Write 5 verbs.",
+"3. Identify parts of speech in sentence.",
+"4. Form 5 adverbs.",
+"5. Write 3 complex sentences."
+],
+
+"Formal Letter": [
+"1. Write a letter to principal for leave.",
+"2. Write subject for complaint letter.",
+"3. Write introduction paragraph.",
+"4. Write a conclusion line.",
+"5. Write receiver address."
+],
+
+"Speech": [
+"1. Write opening line for speech.",
+"2. Write 3 body points.",
+"3. Write concluding line.",
+"4. Topic: importance of studies.",
+"5. Write rhetorical question."
+],
+
+"Prose": [
+"1. Define prose.",
+"2. Write a paragraph on school.",
+"3. Identify story elements.",
+"4. Write character description.",
+"5. Write moral of story."
+],
+
+/* Math */
+"Algebra": [
+"1. Simplify: 3x + x.",
+"2. Solve: 2x = 12.",
+"3. Expand (x+2)².",
+"4. Define variable & constant.",
+"5. Write 3 algebraic expressions."
+],
+
+"Linear Equations": [
+"1. Solve x + 3 = 9.",
+"2. Solve 4x = 16.",
+"3. Solve 2x - 5 = 9.",
+"4. Write linear equation.",
+"5. Graph a straight line."
+],
+
+"Mensuration": [
+"1. Find area of square 5 cm.",
+"2. Find area of 6×4 rectangle.",
+"3. Find perimeter of triangle.",
+"4. Define radius & diameter.",
+"5. Find volume of cube side 3."
+],
+
+/* Science */
+"Reproduction in Animals": [
+"1. Define fertilisation.",
+"2. Draw male & female gametes.",
+"3. Difference between internal & external fertilisation.",
+"4. Example of oviparous animal.",
+"5. Define embryo."
+],
+
+"Sound": [
+"1. Define vibration.",
+"2. Draw wave diagram.",
+"3. Define frequency.",
+"4. Define amplitude.",
+"5. Explain echo."
+],
+
+"Electricity": [
+"1. Draw simple circuit.",
+"2. Label battery & bulb.",
+"3. Define conductor.",
+"4. Define insulator.",
+"5. What is fuse?"
+],
+
+/* Social Science */
+"1857 Revolt": [
+"1. Causes of revolt.",
+"2. Leaders of revolt.",
+"3. Immediate cause.",
+"4. Effects of revolt.",
+"5. Write short note."
+],
+
+"Resources": [
+"1. Define resource.",
+"2. Types of resources.",
+"3. Renewable vs non-renewable.",
+"4. Conservation methods.",
+"5. Why resources important?"
+],
+
+"Judiciary": [
+"1. Structure of courts.",
+"2. Define PIL.",
+"3. Role of Supreme Court.",
+"4. Rights protected?",
+"5. Why judiciary independent?"
+],
+
+/* Hindi */
+"Vyakaran": [
+"1. Sangya ke prakar.",
+"2. Kriya ke 5 udaharan.",
+"3. Visheshan likhiye.",
+"4. Vakya banao.",
+"5. Muhavare likhiye."
+],
+
+"Patra Lekhan": [
+"1. Patra ka format.",
+"2. Patra ke bhaag.",
+"3. Sambodhan likhiye.",
+"4. Samapan likhiye.",
+"5. Formal patra likhiye."
+],
+
+/* Computer */
+"HTML": [
+"1. Write HTML structure.",
+"2. Use <h1> <p> tags.",
+"3. Make a list.",
+"4. Insert image.",
+"5. Create link."
+],
+
+"AI Basics": [
+"1. Define AI.",
+"2. Uses of AI.",
+"3. ML kya hai?",
+"4. Chatbot example.",
+"5. AI ke benefits."
+],
+
+/* Sanskrit */
+"Shabd Roop": [
+"1. Ram shabd roop.",
+"2. Hari shabd roop.",
+"3. Vibhakti table.",
+"4. Striling examples.",
+"5. Vakya banao."
+],
+
+"Dhatu Roop": [
+"1. Path dhatu roop.",
+"2. Lakar likhiye.",
+"3. Verb forms.",
+"4. Translation.",
+"5. Kriya likhiye."
+],
+
+/* French */
+"French Grammar": [
+"1. Write 5 French nouns.",
+"2. Conjugate être.",
+"3. Conjugate avoir.",
+"4. Write 5 adjectives.",
+"5. Translate sentences."
+],
+
+"Culture": [
+"1. Write about France.",
+"2. French food.",
+"3. French monuments.",
+"4. French festivals.",
+"5. French lifestyle."
+]
 };
-
-/* ===== INITIALIZE DASHBOARD ===== */
-function initDashboard() {
-  const topicDiv = document.getElementById('topics');
-  Object.keys(mmBank).forEach(topic => {
-    const btn = document.createElement('button');
-    btn.textContent = topic;
-    btn.onclick = () => { loadMindmap(topic); loadQuiz(topic); loadWS(topic); };
-    topicDiv.appendChild(btn);
-  });
-}
-
-/* ===== LOAD MINDMAP ===== */
-function loadMindmap(topic) {
-  const container = document.getElementById("mindmapContainer");
-  container.innerHTML = "";
-  if(mmBank[topic]){
-    mmBank[topic].forEach((point,i)=>{
-      const bubble = document.createElement("div");
-      bubble.textContent = point;
-      bubble.classList.add('bubble');
-      bubble.style.left = `${Math.random()*70}%`;
-      bubble.style.top = `${Math.random()*70}%`;
-      container.appendChild(bubble);
-    });
-  } else { container.textContent = "No mindmap available."; }
-}
-
-/* ===== LOAD QUIZ ===== */
-function loadQuiz(topic){
-  const q = document.getElementById("quizContainer");
-  q.innerHTML = "";
-  if(quizBank[topic]){
-    quizBank[topic].forEach(qs=>{
-      const p = document.createElement('p');
-      p.textContent = qs;
-      q.appendChild(p);
-    });
-  } else { q.textContent = "No quiz available."; }
-}
-
-/* ===== LOAD WORKSHEET ===== */
-function loadWS(topic){
-  const ws = document.getElementById("wsContainer");
-  ws.innerHTML = "";
-  if(wsBank[topic]){
-    wsBank[topic].forEach(w=>{
-      const p = document.createElement('p');
-      p.textContent = w;
-      ws.appendChild(p);
-    });
-  } else { ws.textContent = "No worksheet available."; }
-}
+// mmBank, quizBank, wsBank
 </script>
 
 </body>
